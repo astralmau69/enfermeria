@@ -1,0 +1,219 @@
+// ─────────────────────────────────────────────────────────────────────────────
+// LAYOUT CONFIGURATOR EXTENSIONS
+// Estilos para las opciones configurables del Theme Configurator.
+// Estas clases son aplicadas dinámicamente por app.layout.ts > containerClass()
+// ─────────────────────────────────────────────────────────────────────────────
+
+// ── 1. ESTILO DE TARJETA ─────────────────────────────────────────────────────
+// Cuando se elige "Borde" en el configurador se agrega 'layout-card-border' al wrapper.
+.layout-card-border {
+    .card {
+        border: 1px solid var(--surface-border) !important;
+        box-shadow: none !important;
+    }
+}
+
+// ── 2. TEMA DEL MENÚ LATERAL ─────────────────────────────────────────────────
+// 'layout-sidebar-dark' cambia el sidebar al tema oscuro independientemente del modo global.
+.layout-sidebar-dark {
+    .layout-sidebar {
+        background-color: var(--surface-900);
+
+        .layout-menu {
+            ul a {
+                color: var(--surface-200);
+
+                &:hover {
+                    background-color: var(--surface-700);
+                    color: var(--surface-0);
+                }
+
+                &.active-route {
+                    color: var(--primary-color);
+                }
+            }
+
+            .layout-root-menuitem > .layout-menuitem-root-text {
+                color: var(--surface-400);
+            }
+        }
+    }
+}
+
+// 'layout-sidebar-light' usa los colores por defecto del tema.
+.layout-sidebar-light {
+    .layout-sidebar {
+        background-color: var(--surface-overlay);
+    }
+}
+
+// ── 3. MODOS DE MENÚ EXTRA ──────────────────────────────────────────────────
+// Los modos base (static / overlay) ya están en _responsive.scss de Sakai.
+// Aquí los modos adicionales reutilizan el comportamiento más cercano.
+
+// COMPACTO (compact): Menú más angosto que el estático
+.layout-compact {
+    .layout-sidebar {
+        width: 14rem;
+        padding: 0.5rem 0.75rem;
+
+        .layout-menu ul a .layout-menuitem-icon {
+            margin-right: 0.35rem;
+        }
+    }
+
+    .layout-main-container {
+        margin-left: 14rem;
+    }
+}
+
+// SLIM: Solo iconos (sin texto), estilo comprimido
+.layout-slim {
+    .layout-sidebar {
+        width: 5rem;
+        padding: 0.5rem;
+        overflow: visible;
+
+        // Ocultar el texto de los ítems, mostrar solo íconos
+        .layout-menu {
+            ul a {
+                justify-content: center;
+                padding: 0.75rem;
+
+                .layout-menuitem-text,
+                .layout-submenu-toggler {
+                    display: none;
+                }
+
+                .layout-menuitem-icon {
+                    margin-right: 0;
+                    font-size: 1.25rem;
+                }
+            }
+
+            .layout-root-menuitem > .layout-menuitem-root-text {
+                display: none;
+            }
+        }
+    }
+
+    .layout-main-container {
+        margin-left: 5rem;
+    }
+}
+
+// REVELAR (reveal): El menú se muestra al pasar el mouse (hover)
+.layout-reveal {
+    .layout-sidebar {
+        width: 5rem;
+        padding: 0.5rem;
+        transition: width var(--layout-section-transition-duration);
+        overflow: hidden;
+
+        .layout-menu ul a {
+            .layout-menuitem-text,
+            .layout-submenu-toggler {
+                opacity: 0;
+                transition: opacity var(--layout-section-transition-duration);
+            }
+            .layout-menuitem-icon {
+                margin-right: 0;
+            }
+        }
+
+        .layout-root-menuitem > .layout-menuitem-root-text {
+            opacity: 0;
+            transition: opacity var(--layout-section-transition-duration);
+        }
+    }
+
+    .layout-sidebar:hover {
+        width: 20rem;
+        padding: 0.5rem 1.5rem;
+
+        .layout-menu ul a {
+            .layout-menuitem-text,
+            .layout-submenu-toggler {
+                opacity: 1;
+            }
+            .layout-menuitem-icon {
+                margin-right: 0.5rem;
+            }
+        }
+
+        .layout-root-menuitem > .layout-menuitem-root-text {
+            opacity: 1;
+        }
+    }
+
+    .layout-main-container {
+        margin-left: 5rem;
+    }
+}
+
+// CAJÓN (drawer): Menú superpuesto sobre el contenido (sin desplazarlo)
+.layout-drawer {
+    .layout-sidebar {
+        transform: translateX(-100%);
+        transition: transform var(--layout-section-transition-duration);
+        z-index: 1000;
+    }
+
+    &.layout-overlay-active .layout-sidebar {
+        transform: translateX(0);
+    }
+
+    .layout-main-container {
+        margin-left: 0;
+    }
+}
+
+// HORIZONTAL: Menú en la barra superior
+.layout-horizontal {
+    .layout-sidebar {
+        position: fixed;
+        top: 5rem;
+        left: 0;
+        width: 100%;
+        height: auto;
+        min-height: unset;
+        border-radius: 0;
+        padding: 0 1.5rem;
+        display: flex;
+        align-items: center;
+        z-index: 998;
+        overflow: visible;
+
+        .layout-menu {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            gap: 0.5rem;
+
+            .layout-root-menuitem > .layout-menuitem-root-text {
+                display: none;
+            }
+
+            ul {
+                display: flex;
+                flex-direction: row;
+                gap: 0.25rem;
+
+                ul {
+                    position: absolute;
+                    flex-direction: column;
+                    background-color: var(--surface-overlay);
+                    border-radius: var(--content-border-radius);
+                    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+                    min-width: 12rem;
+                    z-index: 1001;
+                }
+            }
+        }
+    }
+
+    .layout-main-container {
+        margin-left: 0;
+        padding-top: 10rem; // Espacio para el topbar + menú horizontal
+    }
+}
