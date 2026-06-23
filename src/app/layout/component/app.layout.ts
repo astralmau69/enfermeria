@@ -1,6 +1,8 @@
-import { Component, computed, effect, inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
+import { Component, computed, effect, inject, ElementRef, PLATFORM_ID } from '@angular/core';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
+import { RouterModule, Router, NavigationEnd } from '@angular/router';
+import { filter } from 'rxjs/operators';
+import { gsap } from 'gsap';
 import { AppTopbar } from './app.topbar';
 import { AppSidebar } from './app.sidebar';
 import { AppFooter } from './app.footer';
@@ -24,6 +26,9 @@ import { LayoutService } from '@/app/layout/service/layout.service';
 })
 export class AppLayout {
     layoutService = inject(LayoutService);
+    private router = inject(Router);
+    private host = inject(ElementRef<HTMLElement>);
+    private platformId = inject(PLATFORM_ID);
 
     constructor() {
         effect(() => {
@@ -34,6 +39,23 @@ export class AppLayout {
                 document.body.classList.remove('blocked-scroll');
             }
         });
+
+        // Transición de página: anima el contenido en cada navegación.
+        if (isPlatformBrowser(this.platformId)) {
+            const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+            this.router.events
+                .pipe(filter((e) => e instanceof NavigationEnd))
+                .subscribe(() => {
+                    if (reduced) return;
+                    const main = this.host.nativeElement.querySelector('.layout-main');
+                    if (!main) return;
+                    gsap.fromTo(
+                        main,
+                        { opacity: 0, y: 16 },
+                        { opacity: 1, y: 0, duration: 0.45, ease: 'power2.out', clearProps: 'transform' }
+                    );
+                });
+        }
     }
 
     containerClass = computed(() => {

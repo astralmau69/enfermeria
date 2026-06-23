@@ -12,7 +12,11 @@
  *   export { DataTableComponent }    from './components/data-table/data-table.component';
  */
 
-// Exports de componentes compartidos (agregar aquí a medida que crecen)
-// export { ... } from './components/...';
-// export { ... } from './directives/...';
-// export { ... } from './pipes/...';
+// Exports de componentes compartidos
+export { FormHeaderComponent } from './components/form-header/form-header.component';
+export { PacienteHeaderComponent } from './components/paciente-header/paciente-header.component';
+export { PacienteSearchComponent } from './components/paciente-search/paciente-search.component';
+export { ServiciosCheckboxComponent } from './components/servicios-checkbox/servicios-checkbox.component';
+
+// Directivas compartidas
+export { RevealDirective } from './directives/reveal.directive';

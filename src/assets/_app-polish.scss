@@ -1,0 +1,193 @@
+/* ============================================================================
+   APP POLISH — Identidad visual COSSMIL · Enfermería de Piso.
+   Tipografía institucional, paleta teal-pino, y refinamiento de componentes.
+   ========================================================================== */
+
+:root {
+    --font-display: 'Saira', 'Segoe UI', sans-serif;     /* títulos: técnico/institucional */
+    --font-body: 'Public Sans', 'Segoe UI', sans-serif;  /* cuerpo: oficial/gobierno */
+    --font-mono: 'IBM Plex Mono', ui-monospace, monospace; /* datos y códigos de formulario */
+    --c-alert: #e4572e;  /* vermellón: requeridos / valores anormales (uso escaso) */
+
+    /* Motion de modales (guía ui-skills · transitions-dev) */
+    --modal-open-dur: 250ms;
+    --modal-close-dur: 150ms;
+    --modal-scale: 0.96;
+    --modal-ease: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* ── Tipografía base ──────────────────────────────────────────────────────── */
+html, body {
+    font-family: var(--font-body);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+}
+h1, h2, h3, h4, .font-display {
+    font-family: var(--font-display);
+    letter-spacing: -0.01em;
+}
+.font-mono, code, kbd { font-family: var(--font-mono); }
+
+/* Carnets / números tabulares: cifras alineadas para que no “bailen” */
+.tabular { font-variant-numeric: tabular-nums; }
+
+/* ── Contenedor principal ─────────────────────────────────────────────────── */
+.layout-main { color: var(--p-text-color); }
+
+/* ── Hoja-documento (formularios que replican el papel) ───────────────────── */
+.doc-sheet {
+    border-radius: 1rem;
+    border: 1px solid var(--p-surface-200);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, .04), 0 12px 30px -12px rgba(0, 0, 0, .18);
+}
+.app-dark .doc-sheet {
+    border-color: var(--p-surface-700);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, .3), 0 16px 40px -16px rgba(0, 0, 0, .6);
+}
+
+/* ── PrimeNG Card ─────────────────────────────────────────────────────────── */
+.p-card {
+    border-radius: 1rem;
+    border: 1px solid var(--p-surface-200);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, .04), 0 10px 26px -14px rgba(0, 0, 0, .2);
+    overflow: hidden;
+}
+.app-dark .p-card { border-color: var(--p-surface-700); }
+
+/* ── Tablas ───────────────────────────────────────────────────────────────── */
+.p-datatable .p-datatable-thead > tr > th {
+    background: var(--p-surface-50);
+    color: var(--p-text-color);
+    font-weight: 600;
+    font-size: 0.8rem;
+    letter-spacing: .03em;
+    text-transform: uppercase;
+}
+.app-dark .p-datatable .p-datatable-thead > tr > th { background: var(--p-surface-800); }
+.p-datatable .p-datatable-tbody > tr { transition: background-color .15s ease; }
+.p-datatable .p-datatable-tbody > tr:hover { background: var(--p-primary-50) !important; }
+.app-dark .p-datatable .p-datatable-tbody > tr:hover { background: color-mix(in srgb, var(--p-primary-color) 12%, var(--p-surface-900)) !important; }
+
+/* ── Botones: micro-interacción ───────────────────────────────────────────── */
+.p-button { font-family: var(--font-body); font-weight: 600; transition: transform .12s ease, box-shadow .2s ease, background-color .2s ease; }
+.p-button:not(.p-button-text):not(.p-button-outlined):active { transform: translateY(1px) scale(.99); }
+
+/* ── Inputs: foco más claro ───────────────────────────────────────────────── */
+.p-inputtext:focus,
+.p-password input:focus,
+.p-checkbox:not(.p-disabled) .p-checkbox-box.p-focus {
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--p-primary-color) 22%, transparent);
+}
+
+/* Foco visible accesible para botones/enlaces no-PrimeNG */
+button:focus-visible, a:focus-visible {
+    outline: 2px solid var(--p-primary-color);
+    outline-offset: 2px;
+}
+
+/* ── Diálogos (más amables, motion suave estilo modal) ────────────────────── */
+.p-dialog {
+    border-radius: 1.1rem;
+    overflow: hidden;
+    border: 1px solid var(--p-surface-200);
+    box-shadow: 0 24px 60px -20px rgba(0, 0, 0, .45);
+    transform-origin: center;
+}
+.app-dark .p-dialog { border-color: var(--p-surface-700); }
+
+.p-dialog .p-dialog-header {
+    background: linear-gradient(120deg, var(--p-primary-50), var(--p-surface-0) 72%);
+    border-bottom: 1px solid var(--p-surface-200);
+    padding: 1.05rem 1.4rem;
+}
+.app-dark .p-dialog .p-dialog-header {
+    background: linear-gradient(120deg, color-mix(in srgb, var(--p-primary-color) 16%, var(--p-surface-900)), var(--p-surface-900) 72%);
+    border-bottom-color: var(--p-surface-700);
+}
+.p-dialog .p-dialog-title {
+    font-family: var(--font-display);
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    color: var(--p-text-color);
+}
+.p-dialog .p-dialog-content { padding: 1.35rem 1.4rem; }
+.p-dialog .p-dialog-footer {
+    border-top: 1px solid var(--p-surface-200);
+    padding: 0.9rem 1.4rem;
+    display: flex; justify-content: flex-end; gap: 0.5rem;
+}
+.app-dark .p-dialog .p-dialog-footer { border-top-color: var(--p-surface-700); }
+
+/* Fondo del modal: atenúa y desenfoca para enfocar la atención */
+.p-dialog-mask {
+    background: color-mix(in srgb, #0f2a3a 55%, transparent);
+    backdrop-filter: blur(3px);
+}
+
+/* Motion: entra escalando (suave), respeta reduced-motion vía la media query global */
+@keyframes app-modal-in {
+    from { opacity: 0; transform: translateY(8px) scale(var(--modal-scale)); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+.p-dialog.app-anim-in { animation: app-modal-in var(--modal-open-dur) var(--modal-ease); }
+
+/* ── Campos de formulario: claro qué se llena ─────────────────────────────── */
+/* Editable: invita a escribir (foco primario, hover sutil) */
+.p-inputtext, .p-inputnumber-input, textarea.p-inputtext {
+    transition: border-color .15s ease, box-shadow .15s ease, background-color .15s ease;
+}
+.p-inputtext::placeholder, textarea.p-inputtext::placeholder {
+    color: var(--p-text-muted-color); opacity: .65; font-style: italic;
+}
+/* Solo lectura: se ve "ya impreso", no editable */
+.p-inputtext[readonly], input[readonly].p-inputtext {
+    background: var(--p-surface-50);
+    color: var(--p-text-color);
+    border-style: dashed;
+    cursor: default;
+    box-shadow: none !important;
+}
+.app-dark .p-inputtext[readonly] { background: var(--p-surface-800); }
+
+/* Etiqueta de campo y marca de requerido */
+label.field-label, .field-label {
+    font-weight: 600; font-size: 0.82rem; color: var(--p-text-color);
+}
+.req::after { content: ' *'; color: var(--c-alert); font-weight: 700; }
+.field-hint { font-size: 0.74rem; color: var(--p-text-muted-color); }
+
+/* ── Cajas compactas Día/Mes/Año (fecha de ingreso, etc.) ─────────────────── */
+/* Mayor especificidad para vencer el padding por defecto de .p-inputtext */
+.fecha-cell.p-inputtext {
+    padding: 0.1rem 0.3rem;
+    text-align: center;
+    min-width: 0;
+    line-height: 1.1;
+}
+.fecha-cell--2.p-inputtext { width: 2.9rem; }
+.fecha-cell--4.p-inputtext { width: 4.25rem; }
+
+/* ── Estado vacío amable ──────────────────────────────────────────────────── */
+.empty-state {
+    display: flex; flex-direction: column; align-items: center; gap: 0.35rem;
+    padding: 2.25rem 1rem; color: var(--p-text-muted-color); text-align: center;
+}
+.empty-state i { font-size: 1.9rem; color: var(--p-primary-300); }
+.empty-state__title { font-weight: 600; color: var(--p-text-color); }
+
+/* ── Toast / Toolbar ──────────────────────────────────────────────────────── */
+.p-toolbar { border-radius: 0.85rem; }
+
+/* ── Scrollbar (webkit) ───────────────────────────────────────────────────── */
+*::-webkit-scrollbar { width: 10px; height: 10px; }
+*::-webkit-scrollbar-thumb {
+    background: var(--p-surface-300); border-radius: 9999px;
+    border: 2px solid transparent; background-clip: padding-box;
+}
+*::-webkit-scrollbar-thumb:hover { background: var(--p-surface-400); background-clip: padding-box; }
+.app-dark *::-webkit-scrollbar-thumb { background: var(--p-surface-600); background-clip: padding-box; }
+
+/* ── Respeto a reduced-motion ─────────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: .001ms !important; transition-duration: .001ms !important; }
+}
