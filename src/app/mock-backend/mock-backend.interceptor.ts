@@ -182,6 +182,69 @@ const HANDLERS: Handler[] = [
     {
         method: 'POST', pattern: /\/api\/enfermeria\/signos-vitales$/,
         run: (_p, body) => upsertByPaciente(getDb().signosVitales, body)
+    },
+
+    // ── Consulta Externa (cola/turnos del día — Form 002) ────────────────────
+    {
+        method: 'GET', pattern: /\/api\/consulta-externa\/(\d+)$/,
+        run: (p) => getDb().consultasExternas.find((c) => c.id === +p[0]) ?? null
+    },
+    {
+        method: 'GET', pattern: /\/api\/consulta-externa$/,
+        run: () => getDb().consultasExternas
+    },
+    {
+        method: 'POST', pattern: /\/api\/consulta-externa$/,
+        run: (_p, body) => {
+            const db = getDb();
+            const delDia = db.consultasExternas.filter((c) => c.fecha === body.fecha);
+            const turno = `CE-${String(delDia.length + 1).padStart(3, '0')}`;
+            const created = {
+                ...body,
+                id: nextId(),
+                numeroTurno: body.numeroTurno || turno,
+                estado: body.estado || 'EN_ESPERA'
+            };
+            db.consultasExternas.push(created);
+            persist();
+            return created;
+        }
+    },
+    {
+        method: 'PUT', pattern: /\/api\/consulta-externa\/(\d+)$/,
+        run: (p, body) => {
+            const db = getDb();
+            const i = db.consultasExternas.findIndex((c) => c.id === +p[0]);
+            if (i >= 0) {
+                db.consultasExternas[i] = { ...db.consultasExternas[i], ...body, id: db.consultasExternas[i].id };
+                persist();
+                return db.consultasExternas[i];
+            }
+            return null;
+        }
+    },
+
+    // ── Camas por piso (mapa de camas / hospitalización) ─────────────────────
+    {
+        method: 'GET', pattern: /\/api\/camas\/piso\/(\d+)$/,
+        run: (p) => getDb().camas.filter((c) => c.pisoNumero === +p[0])
+    },
+    {
+        method: 'GET', pattern: /\/api\/camas$/,
+        run: () => getDb().camas
+    },
+    {
+        method: 'PUT', pattern: /\/api\/camas\/(\d+)$/,
+        run: (p, body) => {
+            const db = getDb();
+            const i = db.camas.findIndex((c) => c.id === +p[0]);
+            if (i >= 0) {
+                db.camas[i] = { ...db.camas[i], ...body, id: db.camas[i].id };
+                persist();
+                return db.camas[i];
+            }
+            return null;
+        }
     }
 ];
 

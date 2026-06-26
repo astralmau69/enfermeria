@@ -9,12 +9,15 @@ import { Paciente, VServicios } from '../core/models/paciente.model';
 import { AdmisionHospitalaria, InformeEstadistico, ConsentimientoInformado } from '../core/models/historia-clinica.model';
 import { EvolucionTratamiento, ExamenComplementario } from '../core/models/evolucion.model';
 import { NotaDiariaEnfermeria, RegistroMedicamentos, CuadroSignosVitales } from '../core/models/enfermeria.model';
+import { ConsultaExterna } from '../core/models/consulta-externa.model';
+import { Cama } from '../core/models/piso.model';
 import {
     SEED_PACIENTES, SEED_ADMISIONES, SEED_EVOLUCIONES, SEED_EXAMENES,
-    SEED_NOTAS, SEED_MEDICAMENTOS, SEED_SIGNOS_VITALES, SEED_ESTADISTICOS, SEED_CONSENTIMIENTOS
+    SEED_NOTAS, SEED_MEDICAMENTOS, SEED_SIGNOS_VITALES, SEED_ESTADISTICOS, SEED_CONSENTIMIENTOS,
+    SEED_CONSULTAS_EXTERNAS, SEED_CAMAS
 } from './seed';
 
-const STORAGE_KEY = 'cossmil_mock_db_v2';
+const STORAGE_KEY = 'cossmil_mock_db_v5';
 
 export interface MockDbShape {
     pacientes: Paciente[];
@@ -26,6 +29,8 @@ export interface MockDbShape {
     signosVitales: CuadroSignosVitales[];
     estadisticos: InformeEstadistico[];
     consentimientos: ConsentimientoInformado[];
+    consultasExternas: ConsultaExterna[];
+    camas: Cama[];
     seq: number;
 }
 
@@ -44,6 +49,8 @@ function buildSeed(): MockDbShape {
         signosVitales: clone(SEED_SIGNOS_VITALES),
         estadisticos: clone(SEED_ESTADISTICOS),
         consentimientos: clone(SEED_CONSENTIMIENTOS),
+        consultasExternas: clone(SEED_CONSULTAS_EXTERNAS),
+        camas: clone(SEED_CAMAS),
         seq: 1000
     };
 }

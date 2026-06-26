@@ -9,8 +9,13 @@ import { Paciente } from '../core/models/paciente.model';
 import { AdmisionHospitalaria, InformeEstadistico, ConsentimientoInformado } from '../core/models/historia-clinica.model';
 import { EvolucionTratamiento, ExamenComplementario } from '../core/models/evolucion.model';
 import { NotaDiariaEnfermeria, RegistroMedicamentos, CuadroSignosVitales } from '../core/models/enfermeria.model';
+import { ConsultaExterna } from '../core/models/consulta-externa.model';
+import { Cama } from '../core/models/piso.model';
 
 const sinServicios = () => ({ pt1: false, pt2: false, pip: false, pipa: false, papa: false, pic: false });
+
+/** Fecha de hoy (el "día" de la cola de consulta externa). */
+const HOY = new Date().toISOString().split('T')[0];
 
 // ─────────────────────────────────────────────────────────────────────────────
 // PACIENTES
@@ -102,6 +107,67 @@ export const SEED_PACIENTES: Paciente[] = [
         tipoAsegurado: 'ACTIVO', tipoSeguro: 'RIESGO_PROFESIONAL',
         residencia: { departamento: 'LA PAZ', provincia: 'MURILLO', localidad: 'LA PAZ', zona: 'SAN JORGE', calle: 'AV. 6 DE AGOSTO', numero: '2340' },
         datosFamiliares: { nombrePadre: 'RAMIRO SALAZAR', nombreMadre: 'LIDIA MENDOZA', nombreConyuge: 'GABRIELA RUIZ DE SALAZAR', personaProxima: 'GABRIELA RUIZ DE SALAZAR', parentescoProximo: 'ESPOSA', telefono: '70778899' },
+        vServicios: sinServicios()
+    },
+    // ── Pacientes quirúrgicos del PISO 1 — CIRUGÍA ───────────────────────────
+    {
+        id: 9, carnetAsegurado: '730218RQM', carnetBeneficiario: '730218RQM',
+        apellidoPaterno: 'QUISPE', apellidoMaterno: 'MAMANI', nombres: 'ROBERTO',
+        fechaNacimiento: '1973-02-18', edad: 53, sexo: 'M', estadoCivil: 'CASADO(A)',
+        lugarNacimiento: 'LA PAZ', ocupacion: 'MILITAR', grado: 'SUBOFICIAL MAYOR', unidad: 'ESCUELA MILITAR', fuerza: 'EJERCITO',
+        tipoAsegurado: 'ACTIVO', tipoSeguro: 'ENFERMEDAD',
+        residencia: { departamento: 'LA PAZ', provincia: 'MURILLO', localidad: 'LA PAZ', zona: 'VILLA FATIMA', calle: 'C/ 12', numero: '45' },
+        datosFamiliares: { nombreConyuge: 'MARTHA LIMA DE QUISPE', personaProxima: 'MARTHA LIMA DE QUISPE', parentescoProximo: 'ESPOSA', telefono: '71500011' },
+        vServicios: sinServicios()
+    },
+    {
+        id: 10, carnetAsegurado: '880412SFV', carnetBeneficiario: '550210FVA',
+        apellidoPaterno: 'FLORES', apellidoMaterno: 'VACA', apellidoEsposo: 'DE ROMERO', nombres: 'SANDRA',
+        fechaNacimiento: '1988-04-12', edad: 38, sexo: 'F', estadoCivil: 'CASADO(A)',
+        lugarNacimiento: 'SANTA CRUZ', ocupacion: 'LABORES DE CASA', grado: 'CAPITAN', unidad: 'SERVICIO ACTIVO', fuerza: 'AEREA',
+        tipoAsegurado: 'ESPOSA', tipoSeguro: 'ENFERMEDAD',
+        residencia: { departamento: 'LA PAZ', provincia: 'MURILLO', localidad: 'LA PAZ', zona: 'SOPOCACHI', calle: 'AV. ECUADOR', numero: '210' },
+        datosFamiliares: { nombreConyuge: 'CAP. LUIS ROMERO A.', personaProxima: 'CAP. LUIS ROMERO A.', parentescoProximo: 'ESPOSO', telefono: '76200022' },
+        vServicios: sinServicios()
+    },
+    {
+        id: 11, carnetAsegurado: '810906JMC', carnetBeneficiario: '810906JMC',
+        apellidoPaterno: 'MAMANI', apellidoMaterno: 'CHOQUE', nombres: 'JULIO',
+        fechaNacimiento: '1981-09-06', edad: 45, sexo: 'M', estadoCivil: 'CASADO(A)',
+        lugarNacimiento: 'ORURO', ocupacion: 'MILITAR', grado: 'SARGENTO PRIMERO', unidad: 'RI-2 BOLIVAR', fuerza: 'EJERCITO',
+        tipoAsegurado: 'ACTIVO', tipoSeguro: 'RIESGO_PROFESIONAL',
+        residencia: { departamento: 'LA PAZ', provincia: 'MURILLO', localidad: 'EL ALTO', zona: 'SENKATA', calle: 'C/ 5', numero: '78' },
+        datosFamiliares: { nombreConyuge: 'ELENA APAZA DE MAMANI', personaProxima: 'ELENA APAZA DE MAMANI', parentescoProximo: 'ESPOSA', telefono: '70411033' },
+        vServicios: sinServicios()
+    },
+    {
+        id: 12, carnetAsegurado: '660725EVL', carnetBeneficiario: '350118VLA',
+        apellidoPaterno: 'VARGAS', apellidoMaterno: 'LEON', apellidoEsposo: 'DE CAMPOS', nombres: 'ELENA',
+        fechaNacimiento: '1966-07-25', edad: 60, sexo: 'F', estadoCivil: 'CASADO(A)',
+        lugarNacimiento: 'COCHABAMBA', ocupacion: 'JUBILADA', grado: 'CORONEL', unidad: 'SERVICIO PASIVO', fuerza: 'EJERCITO',
+        tipoAsegurado: 'ESPOSA', tipoSeguro: 'ENFERMEDAD',
+        residencia: { departamento: 'LA PAZ', provincia: 'MURILLO', localidad: 'LA PAZ', zona: 'MIRAFLORES', calle: 'C/ DIAZ ROMERO', numero: '320' },
+        datosFamiliares: { nombreConyuge: 'CNL. JORGE CAMPOS R.', personaProxima: 'CNL. JORGE CAMPOS R.', parentescoProximo: 'ESPOSO', telefono: '72655044' },
+        vServicios: sinServicios()
+    },
+    {
+        id: 13, carnetAsegurado: '970331MTA', carnetBeneficiario: '970331MTA',
+        apellidoPaterno: 'TICONA', apellidoMaterno: 'APAZA', nombres: 'MARCO',
+        fechaNacimiento: '1997-03-31', edad: 29, sexo: 'M', estadoCivil: 'SOLTERO(A)',
+        lugarNacimiento: 'LA PAZ', ocupacion: 'MILITAR', grado: 'CADETE', unidad: 'COLEGIO MILITAR', fuerza: 'EJERCITO',
+        tipoAsegurado: 'CADETE_ALUMNO', tipoSeguro: 'RIESGO_PROFESIONAL',
+        residencia: { departamento: 'LA PAZ', provincia: 'MURILLO', localidad: 'LA PAZ', zona: 'IRPAVI', calle: 'C/ 3', numero: '15' },
+        datosFamiliares: { nombrePadre: 'FELIX TICONA', nombreMadre: 'JUSTINA APAZA', personaProxima: 'FELIX TICONA', parentescoProximo: 'PADRE', telefono: '79355066' },
+        vServicios: sinServicios()
+    },
+    {
+        id: 14, carnetAsegurado: '850719CSR', carnetBeneficiario: '480203SRA',
+        apellidoPaterno: 'SUAREZ', apellidoMaterno: 'RIVERA', apellidoEsposo: 'DE NAVA', nombres: 'CARLA',
+        fechaNacimiento: '1985-07-19', edad: 41, sexo: 'F', estadoCivil: 'CASADO(A)',
+        lugarNacimiento: 'TARIJA', ocupacion: 'COMERCIANTE', grado: 'MAYOR', unidad: 'SERVICIO PASIVO', fuerza: 'NAVAL',
+        tipoAsegurado: 'ESPOSA', tipoSeguro: 'ENFERMEDAD',
+        residencia: { departamento: 'LA PAZ', provincia: 'MURILLO', localidad: 'LA PAZ', zona: 'CALACOTO', calle: 'C/ 21', numero: '99' },
+        datosFamiliares: { nombreConyuge: 'MY. RAUL NAVA L.', personaProxima: 'MY. RAUL NAVA L.', parentescoProximo: 'ESPOSO', telefono: '76900077' },
         vServicios: sinServicios()
     }
 ];
@@ -371,4 +437,77 @@ export const SEED_CONSENTIMIENTOS: ConsentimientoInformado[] = [
         fecha: '2026-06-21', hora: '03:20', vServicios: sinServicios(),
         firmante: { nombre: 'MARIO TERAN LOPEZ', ci: '4789122 SC', tipo: 'FAMILIAR' }
     }
+];
+
+// ─────────────────────────────────────────────────────────────────────────────
+// CONSULTA EXTERNA — Cola/turnos del día (Formulario 002)
+// Reutiliza los pacientes del seed; estados variados para mostrar el flujo.
+// ─────────────────────────────────────────────────────────────────────────────
+export const SEED_CONSULTAS_EXTERNAS: ConsultaExterna[] = [
+    {
+        id: 1, pacienteId: 2, carnetAsegurado: '420512JCR',
+        fecha: HOY, numeroTurno: 'CE-001', especialidad: 'MEDICINA INTERNA', medico: 'TERRAZAS LIMACHI OSCAR',
+        motivoConsulta: 'Control de presión arterial y cefalea ocasional.',
+        estado: 'EN_ESPERA', prioridad: 'NORMAL', horaRecepcion: '07:45'
+    },
+    {
+        id: 2, pacienteId: 1, carnetAsegurado: '510813MCR', carnetBeneficiario: '536220PLA',
+        fecha: HOY, numeroTurno: 'CE-002', especialidad: 'CARDIOLOGIA', medico: 'GUTIERREZ ARANA SANDRA',
+        motivoConsulta: 'Palpitaciones y disnea de esfuerzo.',
+        estado: 'EN_ESPERA', prioridad: 'PREFERENCIAL', horaRecepcion: '07:52'
+    },
+    {
+        id: 3, pacienteId: 5, carnetAsegurado: '920304CRV', carnetBeneficiario: '610508MRV',
+        fecha: HOY, numeroTurno: 'CE-003', especialidad: 'GINECOLOGIA', medico: 'CESPEDES ROMERO LAURA',
+        motivoConsulta: 'Control ginecológico de rutina.',
+        estado: 'EN_PREPARACION', prioridad: 'NORMAL', horaRecepcion: '08:05',
+        constantes: { peso: 62, talla: 160 }
+    },
+    {
+        id: 4, pacienteId: 8, carnetAsegurado: '810919JSM',
+        fecha: HOY, numeroTurno: 'CE-004', especialidad: 'TRAUMATOLOGIA', medico: 'PINTO SALDAÑA MARCELO',
+        motivoConsulta: 'Dolor lumbar mecánico de 2 semanas.',
+        estado: 'LISTO_MEDICO', prioridad: 'NORMAL', horaRecepcion: '08:10', horaConstantes: '08:20',
+        enfermeraNombre: 'Lic. Jacquelin Silva Quispe',
+        alergias: 'Ninguna conocida',
+        constantes: { paSistolica: 128, paDiastolica: 82, fc: 76, fr: 18, temperatura: 36.6, saturacion: 97, peso: 84, talla: 178, imc: 26.5 }
+    },
+    {
+        id: 5, pacienteId: 6, carnetAsegurado: '581017LFC',
+        fecha: HOY, numeroTurno: 'CE-005', especialidad: 'ENDOCRINOLOGIA', medico: 'TERRAZAS LIMACHI OSCAR',
+        motivoConsulta: 'Control de diabetes — ajuste de insulina.',
+        estado: 'ATENDIDO', prioridad: 'PREFERENCIAL', horaRecepcion: '07:30', horaConstantes: '07:40',
+        enfermeraNombre: 'Lic. Jacquelin Silva Quispe',
+        alergias: 'Penicilina',
+        constantes: { paSistolica: 140, paDiastolica: 88, fc: 80, fr: 18, temperatura: 36.4, saturacion: 95, peso: 78, talla: 170, imc: 27.0, glucemia: 186 }
+    }
+];
+
+// ─────────────────────────────────────────────────────────────────────────────
+// CAMAS — PISO 1 · CIRUGÍA (mapa de camas simulado)
+// 12 camas: ocupadas con pacientes quirúrgicos (día post-op), libres y limpieza.
+// ─────────────────────────────────────────────────────────────────────────────
+export const SEED_CAMAS: Cama[] = [
+    { id: 1, pisoNumero: 1, codigo: 'C-101', estado: 'OCUPADA', pacienteId: 9, procedimiento: 'Colecistectomía laparoscópica', diaPostOp: 1 },
+    { id: 2, pisoNumero: 1, codigo: 'C-102', estado: 'OCUPADA', pacienteId: 5, procedimiento: 'Colecistectomía abierta (colecistitis aguda)', diaPostOp: 1 },
+    { id: 3, pisoNumero: 1, codigo: 'C-103', estado: 'OCUPADA', pacienteId: 10, procedimiento: 'Apendicectomía', diaPostOp: 2 },
+    { id: 4, pisoNumero: 1, codigo: 'C-104', estado: 'LIBRE' },
+    { id: 5, pisoNumero: 1, codigo: 'C-105', estado: 'OCUPADA', pacienteId: 11, procedimiento: 'Hernioplastía inguinal derecha', diaPostOp: 1 },
+    { id: 6, pisoNumero: 1, codigo: 'C-106', estado: 'OCUPADA', pacienteId: 12, procedimiento: 'Hemicolectomía derecha', diaPostOp: 3 },
+    { id: 7, pisoNumero: 1, codigo: 'C-107', estado: 'LIMPIEZA' },
+    { id: 8, pisoNumero: 1, codigo: 'C-108', estado: 'OCUPADA', pacienteId: 13, procedimiento: 'Apendicectomía complicada (peritonitis)', diaPostOp: 4 },
+    { id: 9, pisoNumero: 1, codigo: 'C-109', estado: 'OCUPADA', pacienteId: 14, procedimiento: 'Colecistectomía programada', diaPostOp: 0, preOp: true, observacion: 'En ayuno — cirugía hoy 14:00' },
+    { id: 10, pisoNumero: 1, codigo: 'C-110', estado: 'LIBRE' },
+    { id: 11, pisoNumero: 1, codigo: 'C-111', estado: 'OCUPADA', pacienteId: 8, procedimiento: 'Osteosíntesis de fémur (post-traumática)', diaPostOp: 5 },
+    { id: 12, pisoNumero: 1, codigo: 'C-112', estado: 'RESERVADA', reservaNota: 'Ingreso programado 16:00 — hernioplastía' },
+
+    // ── PISO 2 · MEDICINA INTERNA (para demostrar traslados entre sectores) ──
+    { id: 13, pisoNumero: 2, codigo: 'C-201', estado: 'OCUPADA', pacienteId: 2, procedimiento: 'Neumonía adquirida en la comunidad (NAC)' },
+    { id: 14, pisoNumero: 2, codigo: 'C-202', estado: 'OCUPADA', pacienteId: 4, procedimiento: 'Diabetes mellitus 2 descompensada', observacion: 'Control glucémico c/6h' },
+    { id: 15, pisoNumero: 2, codigo: 'C-203', estado: 'LIBRE' },
+    { id: 16, pisoNumero: 2, codigo: 'C-204', estado: 'RESERVADA', reservaNota: 'Reservada — traslado desde Emergencias' },
+    { id: 17, pisoNumero: 2, codigo: 'C-205', estado: 'LIBRE' },
+    { id: 18, pisoNumero: 2, codigo: 'C-206', estado: 'LIMPIEZA' },
+    { id: 19, pisoNumero: 2, codigo: 'C-207', estado: 'LIBRE' },
+    { id: 20, pisoNumero: 2, codigo: 'C-208', estado: 'LIBRE' }
 ];

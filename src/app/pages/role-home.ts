@@ -20,7 +20,7 @@ export class RoleHome {
         if (rol === 'DOCTOR') {
             this.router.navigate(['/app/doctor/pacientes']);
         } else if (rol === 'ENFERMERA') {
-            this.router.navigate(['/app/enfermeria/pacientes']);
+            this.router.navigate(['/app/enfermeria/inicio']);
         } else {
             this.router.navigate(['/auth/login']);
         }

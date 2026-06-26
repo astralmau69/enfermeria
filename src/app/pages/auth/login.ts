@@ -24,8 +24,8 @@ type Rol = 'DOCTOR' | 'ENFERMERA';
                 <div class="brand-glow brand-glow-2"></div>
 
                 <div class="brand-logo flex items-center gap-3 relative z-10">
-                    <div class="flex items-center justify-center w-12 h-12 rounded-2xl bg-white/15 backdrop-blur">
-                        <i class="pi pi-heart-fill text-2xl"></i>
+                    <div class="brand-emblem flex items-center justify-center w-14 h-14 rounded-2xl bg-white">
+                        <img src="img/logo_mediano.png" alt="Escudo COSSMIL" class="w-11 h-11 object-contain" />
                     </div>
                     <div class="leading-tight">
                         <div class="font-bold text-lg">COSSMIL</div>
@@ -59,8 +59,8 @@ type Rol = 'DOCTOR' | 'ENFERMERA';
             <main class="flex-1 flex items-center justify-center p-6 sm:p-10">
                 <div class="login-card w-full max-w-md">
                     <div class="text-center mb-8">
-                        <div class="lg:hidden flex items-center justify-center w-14 h-14 mx-auto mb-4 rounded-2xl bg-primary-100 text-primary-700">
-                            <i class="pi pi-heart-fill text-2xl"></i>
+                        <div class="lg:hidden flex items-center justify-center w-16 h-16 mx-auto mb-4 rounded-2xl bg-white border border-surface-200 shadow-sm">
+                            <img src="img/logo_mediano.png" alt="Escudo COSSMIL" class="w-12 h-12 object-contain" />
                         </div>
                         <h2 class="text-surface-900 dark:text-surface-0 text-3xl font-bold mb-1">Bienvenido</h2>
                         <p class="text-muted-color">Seleccione su perfil para ingresar</p>
@@ -127,6 +127,7 @@ type Rol = 'DOCTOR' | 'ENFERMERA';
         .brand-glow {
             position: absolute; border-radius: 9999px; filter: blur(70px); opacity: .45; pointer-events: none;
         }
+        .brand-emblem { box-shadow: 0 8px 22px rgba(0,0,0,.18); }
         .brand-glow-1 { width: 380px; height: 380px; background: rgba(255,255,255,.35); top: -120px; right: -80px; }
         .brand-glow-2 { width: 300px; height: 300px; background: rgba(16,185,129,.5); bottom: -100px; left: -60px; }
 
@@ -241,7 +242,7 @@ export class Login implements AfterViewInit, OnDestroy {
         this.authService.isAuthenticated.set(true);
         this.loading.set(false);
 
-        const destino = response.user.rol === 'DOCTOR' ? '/app/doctor/pacientes' : '/app/enfermeria/pacientes';
+        const destino = response.user.rol === 'DOCTOR' ? '/app/doctor/pacientes' : '/app/enfermeria/inicio';
         this.router.navigate([destino]);
     }
 

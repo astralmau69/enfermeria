@@ -18,8 +18,26 @@ const forms: { path: string; load: () => Promise<any> }[] = [
 
 export const ENFERMERIA_ROUTES: Routes = [
     {
+        path: 'inicio',
+        loadComponent: () => import('./inicio/inicio.component').then((m) => m.InicioTurnoComponent)
+    },
+    {
         path: 'pacientes',
         loadComponent: () => import('../doctor/paciente-lista/paciente-lista.component').then((m) => m.PacienteListaComponent)
+    },
+    // Mapa de camas por piso (Hospitalización — simula Piso 1 · Cirugía)
+    {
+        path: 'pisos',
+        loadComponent: () => import('./pisos/piso.component').then((m) => m.PisoComponent)
+    },
+    // Consulta Externa (proceso ambulatorio: recepción → constantes → Form 002)
+    {
+        path: 'consulta-externa',
+        loadComponent: () => import('./consulta-externa/consulta-externa-lista.component').then((m) => m.ConsultaExternaListaComponent)
+    },
+    {
+        path: 'consulta-externa/:id',
+        loadComponent: () => import('./consulta-externa/consulta-externa-detalle.component').then((m) => m.ConsultaExternaDetalleComponent)
     },
     // Genera, por cada hoja, la ruta sin id y la ruta con :pacienteId
     ...forms.flatMap((f) => [
@@ -28,7 +46,7 @@ export const ENFERMERIA_ROUTES: Routes = [
     ]),
     {
         path: '',
-        redirectTo: 'pacientes',
+        redirectTo: 'inicio',
         pathMatch: 'full'
     }
 ];

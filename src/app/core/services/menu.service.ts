@@ -38,9 +38,33 @@ export class MenuService {
             roles: ['ENFERMERA'],
             items: [
                 {
+                    label: 'Inicio de Turno',
+                    icon: 'pi pi-fw pi-home',
+                    routerLink: ['/app/enfermeria/inicio'],
+                    roles: ['ENFERMERA']
+                },
+                {
                     label: 'Pacientes en Piso',
                     icon: 'pi pi-fw pi-users',
                     routerLink: ['/app/enfermeria/pacientes'],
+                    roles: ['ENFERMERA']
+                },
+                {
+                    label: 'Mapa de Camas',
+                    icon: 'pi pi-fw pi-th-large',
+                    routerLink: ['/app/enfermeria/pisos'],
+                    roles: ['ENFERMERA']
+                }
+            ]
+        },
+        {
+            label: 'Consulta Externa',
+            roles: ['ENFERMERA'],
+            items: [
+                {
+                    label: 'Recepción / Turnos',
+                    icon: 'pi pi-fw pi-inbox',
+                    routerLink: ['/app/enfermeria/consulta-externa'],
                     roles: ['ENFERMERA']
                 }
             ]

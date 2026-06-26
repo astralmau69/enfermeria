@@ -20,9 +20,14 @@ import { Paciente } from '@/app/core/models/paciente.model';
             <button class="layout-menu-button layout-topbar-action" (click)="layoutService.onMenuToggle()">
                 <i class="pi pi-bars"></i>
             </button>
-            <a class="layout-topbar-logo" routerLink="/app">
-                <i class="pi pi-heart-fill" style="font-size: 1.6rem; color: var(--p-primary-color)"></i>
-                <span class="font-display">{{ layoutService.layoutConfig().systemName }} · Piso</span>
+            <a class="layout-topbar-logo cossmil-brand" routerLink="/app">
+                <span class="cossmil-brand__badge">
+                    <img src="img/logo_pequeno.png" alt="Escudo COSSMIL" />
+                </span>
+                <span class="cossmil-brand__text">
+                    <span class="cossmil-brand__name font-display">{{ layoutService.layoutConfig().systemName }}</span>
+                    <span class="cossmil-brand__sub">Enfermería de Piso</span>
+                </span>
             </a>
         </div>
 
@@ -78,6 +83,25 @@ import { Paciente } from '@/app/core/models/paciente.model';
         </div>
     </div>`,
     styles: [`
+        /* ── Marca institucional COSSMIL (escudo en disco blanco) ── */
+        .cossmil-brand { display: flex; align-items: center; gap: 0.7rem; text-decoration: none; }
+        .cossmil-brand__badge {
+            flex: none; width: 2.6rem; height: 2.6rem; border-radius: 9999px;
+            display: flex; align-items: center; justify-content: center;
+            background: #fff; border: 1px solid var(--p-surface-200);
+            box-shadow: 0 2px 6px rgba(0,0,0,.10);
+        }
+        .cossmil-brand__badge img { width: 2rem; height: 2rem; object-fit: contain; display: block; }
+        .cossmil-brand__text { display: flex; flex-direction: column; line-height: 1.05; }
+        .cossmil-brand__name {
+            font-weight: 700; font-size: 1.1rem; letter-spacing: 0.02em; color: var(--p-primary-700);
+        }
+        :host-context(.app-dark) .cossmil-brand__name { color: var(--p-primary-300); }
+        .cossmil-brand__sub {
+            font-family: var(--font-mono); font-size: 0.6rem; font-weight: 600;
+            text-transform: uppercase; letter-spacing: 0.14em; color: var(--p-text-muted-color);
+        }
+
         .topbar-paciente {
             display: none; align-items: center; gap: 0.6rem;
             padding: 0.35rem 0.85rem; border-radius: 0.75rem;
