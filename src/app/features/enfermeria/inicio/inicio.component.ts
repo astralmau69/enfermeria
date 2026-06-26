@@ -1,14 +1,19 @@
-import { Component, inject, signal, computed, PLATFORM_ID, OnDestroy } from '@angular/core';
+import { Component, inject, signal, computed, PLATFORM_ID, OnDestroy, AfterViewInit, ElementRef } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { Router } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
 import { TagModule } from 'primeng/tag';
 import { TooltipModule } from 'primeng/tooltip';
+import { gsap } from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { PacienteService } from '@/app/core/services/paciente.service';
 import { PacienteActivoService } from '@/app/core/services/paciente-activo.service';
 import { AuthService } from '@/app/core/services/auth.service';
 import { Paciente } from '@/app/core/models/paciente.model';
-import { RevealDirective } from '@/app/shared/directives/reveal.directive';
+import { ScrollRevealDirective } from '@/app/shared/directives/scroll-reveal.directive';
+import { CountUpDirective } from '@/app/shared/directives/count-up.directive';
+
+gsap.registerPlugin(ScrollTrigger);
 
 type Riesgo = 'estable' | 'observacion' | 'critico';
 
@@ -49,10 +54,10 @@ interface Kpi {
 @Component({
     selector: 'app-inicio-turno',
     standalone: true,
-    imports: [CommonModule, ButtonModule, TagModule, TooltipModule, RevealDirective],
+    imports: [CommonModule, ButtonModule, TagModule, TooltipModule, ScrollRevealDirective, CountUpDirective],
     template: `
         <!-- ───────────── Banner de bienvenida ───────────── -->
-        <section class="welcome" appReveal>
+        <section class="welcome">
             <div class="welcome__glow welcome__glow-1"></div>
             <div class="welcome__glow welcome__glow-2"></div>
 
@@ -74,10 +79,10 @@ interface Kpi {
         <!-- ───────────── KPIs ───────────── -->
         <div class="kpi-grid">
             @for (k of kpis(); track k.label; let i = $index) {
-                <div class="kpi" [class]="'kpi--' + k.tone" [appReveal]="i">
+                <div class="kpi" [class]="'kpi--' + k.tone" [appScrollReveal]="i">
                     <div class="kpi__icon"><i class="pi" [ngClass]="k.icon"></i></div>
                     <div class="kpi__body">
-                        <div class="kpi__value tabular">{{ k.value }}</div>
+                        <div class="kpi__value tabular" [appCountUp]="k.value"></div>
                         <div class="kpi__label">{{ k.label }}</div>
                         <div class="kpi__sub">{{ k.sub }}</div>
                     </div>
@@ -87,7 +92,7 @@ interface Kpi {
 
         <div class="cols">
             <!-- ───────────── Ronda de turno ───────────── -->
-            <section class="panel" appReveal>
+            <section class="panel" appScrollReveal>
                 <header class="panel__head">
                     <h2 class="panel__title"><i class="pi pi-users"></i> Ronda de turno</h2>
                     <button pButton type="button" label="Ver censo" icon="pi pi-arrow-right" iconPos="right"
@@ -99,7 +104,7 @@ interface Kpi {
                 } @else {
                     <ul class="ronda">
                         @for (t of ronda(); track t.paciente.id; let i = $index) {
-                            <li class="ronda__row" [appReveal]="i" [revealY]="10">
+                            <li class="ronda__row" [appScrollReveal]="i" [revealY]="10">
                                 <span class="ronda__cama">{{ t.cama }}</span>
                                 <span class="ronda__avatar" [class.is-critico]="t.riesgo === 'critico'"
                                     [class.is-obs]="t.riesgo === 'observacion'">{{ initials(t.paciente) }}</span>
@@ -129,7 +134,7 @@ interface Kpi {
             </section>
 
             <!-- ───────────── Pendientes prioritarios ───────────── -->
-            <aside class="panel" appReveal>
+            <aside class="panel" appScrollReveal>
                 <header class="panel__head">
                     <h2 class="panel__title"><i class="pi pi-flag"></i> Pendientes prioritarios</h2>
                     <span class="panel__count">{{ pendientes().length }}</span>
@@ -140,7 +145,7 @@ interface Kpi {
                 } @else {
                     <ul class="todo">
                         @for (p of pendientes(); track $index; let i = $index) {
-                            <li class="todo__row" [class]="'todo--' + p.severity" (click)="abrir(p.form, p.pacienteId)" [appReveal]="i" [revealY]="8">
+                            <li class="todo__row" [class]="'todo--' + p.severity" (click)="abrir(p.form, p.pacienteId)" [appScrollReveal]="i" [revealY]="8">
                                 <span class="todo__icon"><i class="pi" [ngClass]="p.icon"></i></span>
                                 <div class="todo__body">
                                     <div class="todo__label">{{ p.label }}</div>
@@ -167,17 +172,28 @@ interface Kpi {
     styles: [`
         :host { display: block; }
 
-        /* ── Banner ── */
+        /* ── Banner (hero) ── */
         .welcome {
             position: relative; overflow: hidden; display: flex; flex-wrap: wrap; gap: 1rem;
             align-items: center; justify-content: space-between;
-            padding: 1.5rem 1.75rem; border-radius: 1.25rem; color: #fff; margin-bottom: 1.25rem;
-            background: linear-gradient(120deg, var(--p-primary-700) 0%, var(--p-primary-500) 52%, #0f766e 100%);
-            box-shadow: 0 16px 34px color-mix(in srgb, var(--p-primary-color) 32%, transparent);
+            padding: 2rem 2.25rem; border-radius: 1.5rem; color: #fff; margin-bottom: 1.5rem;
+            background:
+                radial-gradient(135% 130% at 100% 0%, rgba(34,211,238,.30) 0%, transparent 48%),
+                radial-gradient(120% 130% at 0% 100%, rgba(13,148,136,.55) 0%, transparent 55%),
+                linear-gradient(115deg, var(--p-primary-700) 0%, var(--p-primary-500) 56%, #11b4a3 100%);
+            box-shadow: 0 18px 40px -16px color-mix(in srgb, var(--p-primary-color) 50%, transparent);
+            border: 1px solid color-mix(in srgb, #22d3ee 30%, transparent);
+            will-change: transform;
         }
-        .welcome__glow { position: absolute; border-radius: 9999px; filter: blur(70px); opacity: .4; pointer-events: none; }
-        .welcome__glow-1 { width: 320px; height: 320px; background: rgba(255,255,255,.4); top: -140px; right: -60px; }
-        .welcome__glow-2 { width: 260px; height: 260px; background: rgba(16,185,129,.5); bottom: -120px; left: 30%; }
+        /* Brillo superior y filo inferior estilo "vidrio" aqua */
+        .welcome::before {
+            content: ''; position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
+            background: linear-gradient(180deg, rgba(255,255,255,.18), rgba(255,255,255,0) 42%);
+            box-shadow: inset 0 1px 0 rgba(255,255,255,.28), inset 0 -1px 0 rgba(34,211,238,.25);
+        }
+        .welcome__glow { position: absolute; border-radius: 9999px; filter: blur(72px); opacity: .5; pointer-events: none; will-change: transform; }
+        .welcome__glow-1 { width: 320px; height: 320px; background: rgba(94,234,212,.55); top: -150px; right: -50px; }
+        .welcome__glow-2 { width: 300px; height: 300px; background: rgba(34,211,238,.6); bottom: -140px; left: 32%; }
         .welcome__brand { display: flex; align-items: center; gap: 1rem; position: relative; z-index: 1; }
         .welcome__emblem {
             flex: none; width: 3.6rem; height: 3.6rem; border-radius: 1rem; background: #fff;
@@ -185,7 +201,8 @@ interface Kpi {
         }
         .welcome__emblem img { width: 2.8rem; height: 2.8rem; object-fit: contain; }
         .welcome__eyebrow { font-family: var(--font-mono); font-size: 0.64rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.16em; color: rgba(255,255,255,.78); }
-        .welcome__title { font-family: var(--font-display); font-weight: 700; font-size: 1.65rem; line-height: 1.08; margin: 0.15rem 0 0; color: #fff; }
+        .welcome__title { font-family: var(--font-display); font-weight: 700; font-size: 2rem; line-height: 1.05; letter-spacing: -0.015em; margin: 0.2rem 0 0; color: #fff; }
+        @media (min-width: 1024px) { .welcome__title { font-size: 2.3rem; } }
         .welcome__sub { margin: 0.25rem 0 0; color: rgba(255,255,255,.82); font-size: 0.9rem; }
         .welcome__shift { position: relative; z-index: 1; display: flex; flex-direction: column; gap: 0.2rem; align-items: flex-end; padding: 0.6rem 1rem; border-radius: 0.9rem; background: rgba(255,255,255,.16); backdrop-filter: blur(6px); }
         .welcome__shift-label { font-family: var(--font-mono); font-size: 0.6rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.14em; color: rgba(255,255,255,.8); }
@@ -199,9 +216,14 @@ interface Kpi {
             display: flex; align-items: center; gap: 0.9rem; padding: 1.05rem 1.15rem;
             border-radius: 1rem; background: var(--p-surface-0); border: 1px solid var(--p-surface-200);
             box-shadow: 0 1px 2px rgba(0,0,0,.04), 0 10px 24px -16px rgba(0,0,0,.3);
+            transition: transform .22s cubic-bezier(0.22,1,0.36,1), box-shadow .22s ease, border-color .22s ease;
+            will-change: transform;
         }
         :host-context(.app-dark) .kpi { background: var(--p-surface-900); border-color: var(--p-surface-700); }
-        .kpi__icon { flex: none; width: 2.9rem; height: 2.9rem; border-radius: 0.85rem; display: flex; align-items: center; justify-content: center; font-size: 1.25rem; }
+        .kpi:hover { transform: translateY(-4px); border-color: var(--p-primary-200); box-shadow: 0 4px 10px rgba(0,0,0,.05), 0 24px 42px -22px color-mix(in srgb, var(--p-primary-color) 40%, rgba(0,0,0,.5)); }
+        :host-context(.app-dark) .kpi:hover { border-color: color-mix(in srgb, var(--p-primary-color) 45%, var(--p-surface-700)); }
+        .kpi__icon { flex: none; width: 2.9rem; height: 2.9rem; border-radius: 0.85rem; display: flex; align-items: center; justify-content: center; font-size: 1.25rem; transition: transform .22s cubic-bezier(0.22,1,0.36,1); }
+        .kpi:hover .kpi__icon { transform: scale(1.08) rotate(-3deg); }
         .kpi--primary .kpi__icon { background: var(--p-primary-50); color: var(--p-primary-600); }
         .kpi--amber .kpi__icon { background: #fef3c7; color: #b45309; }
         .kpi--rose .kpi__icon { background: #ffe4e6; color: #be123c; }
@@ -282,12 +304,14 @@ interface Kpi {
         .quick__btn .pi { color: var(--p-primary-600); }
     `]
 })
-export class InicioTurnoComponent implements OnDestroy {
+export class InicioTurnoComponent implements AfterViewInit, OnDestroy {
     private pacienteService = inject(PacienteService);
     private activo = inject(PacienteActivoService);
     private auth = inject(AuthService);
     private router = inject(Router);
     private platformId = inject(PLATFORM_ID);
+    private host = inject(ElementRef<HTMLElement>);
+    private ctx?: gsap.Context;
 
     private pacientes = signal<Paciente[]>([]);
     loading = signal(true);
@@ -306,8 +330,35 @@ export class InicioTurnoComponent implements OnDestroy {
         }
     }
 
+    // ─────────────────────── Animaciones GSAP ───────────────────────
+    ngAfterViewInit(): void {
+        if (!isPlatformBrowser(this.platformId)) return;
+        if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+        this.ctx = gsap.context(() => {
+            // Entrada cinematográfica del hero (estilo Apple).
+            gsap.timeline({ defaults: { ease: 'power3.out' } })
+                .from('.welcome', { y: 20, autoAlpha: 0, duration: 0.7 })
+                .from('.welcome__emblem', { scale: 0.5, autoAlpha: 0, duration: 0.6, ease: 'back.out(1.7)' }, '-=0.35')
+                .from(['.welcome__eyebrow', '.welcome__title', '.welcome__sub'],
+                    { y: 18, autoAlpha: 0, duration: 0.55, stagger: 0.1 }, '-=0.4')
+                .from('.welcome__shift', { x: 24, autoAlpha: 0, duration: 0.5 }, '-=0.4');
+
+            // Parallax de los resplandores ligado al scroll (profundidad sutil).
+            gsap.to('.welcome__glow-1', {
+                yPercent: 28, ease: 'none',
+                scrollTrigger: { trigger: '.welcome', start: 'top top', end: 'bottom top', scrub: true }
+            });
+            gsap.to('.welcome__glow-2', {
+                yPercent: -22, ease: 'none',
+                scrollTrigger: { trigger: '.welcome', start: 'top top', end: 'bottom top', scrub: true }
+            });
+        }, this.host.nativeElement);
+    }
+
     ngOnDestroy(): void {
         if (this.timer) clearInterval(this.timer);
+        this.ctx?.revert();
     }
 
     // ── Identidad / saludo ──────────────────────────────────────────────────

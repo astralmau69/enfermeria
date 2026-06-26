@@ -9,24 +9,25 @@ import { AuthInterceptor } from './app/core/interceptors/auth.interceptor';
 import { MockBackendInterceptor } from './app/mock-backend';
 
 /**
- * Identidad cromática COSSMIL — teal-pino clínico/institucional.
- * Color de marca deliberado (no el emerald por defecto del template),
- * fundamentado en el contexto: institución estatal militar-médica.
+ * Identidad cromática COSSMIL — teal-aqua de enfermería.
+ * Verde-azulado luminoso tipo "scrubs"/uniforme clínico, con acento cyan
+ * (#22d3ee, ver --c-accent en _app-polish.scss) para realces estilo Apple.
+ * Anclas elegidas con el usuario: 500 #0d9488 · 600 #0f766e · 700 #115e59.
  */
 const ClinicalPreset = definePreset(Aura, {
     semantic: {
         primary: {
-            50: '#e8f6f1',
-            100: '#c6e9dd',
-            200: '#94d6c1',
-            300: '#5cbfa1',
-            400: '#2da585',
-            500: '#108a6e',
-            600: '#0c7059',
-            700: '#0c5a49',
-            800: '#0d483b',
-            900: '#0c3a30',
-            950: '#04211b'
+            50: '#f0fdfa',
+            100: '#ccfbf1',
+            200: '#99f6e4',
+            300: '#5eead4',
+            400: '#2dd4bf',
+            500: '#0d9488',
+            600: '#0f766e',
+            700: '#115e59',
+            800: '#134e4a',
+            900: '#0f3b38',
+            950: '#042f2e'
         }
     }
 });

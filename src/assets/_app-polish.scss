@@ -8,6 +8,7 @@
     --font-body: 'Public Sans', 'Segoe UI', sans-serif;  /* cuerpo: oficial/gobierno */
     --font-mono: 'IBM Plex Mono', ui-monospace, monospace; /* datos y códigos de formulario */
     --c-alert: #e4572e;  /* vermellón: requeridos / valores anormales (uso escaso) */
+    --c-accent: #22d3ee; /* cyan de realce — acentos estilo Apple sobre la paleta teal-aqua */
 
     /* Motion de modales (guía ui-skills · transitions-dev) */
     --modal-open-dur: 250ms;
@@ -17,6 +18,9 @@
 }
 
 /* ── Tipografía base ──────────────────────────────────────────────────────── */
+html {
+    scroll-behavior: smooth;  /* desplazamiento suave entre anclas */
+}
 html, body {
     font-family: var(--font-body);
     -webkit-font-smoothing: antialiased;
@@ -189,5 +193,6 @@ label.field-label, .field-label {
 
 /* ── Respeto a reduced-motion ─────────────────────────────────────────────── */
 @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
     *, *::before, *::after { animation-duration: .001ms !important; transition-duration: .001ms !important; }
 }

@@ -62,17 +62,19 @@ import { Paciente } from '@/app/core/models/paciente.model';
             <!-- Perfil del Usuario -->
             <div class="layout-topbar-menu hidden lg:block">
                 <div class="layout-topbar-menu-content flex items-center gap-3 ml-2">
-                    <div class="flex flex-col items-end leading-tight mr-1">
-                        <span class="font-semibold text-surface-900 dark:text-surface-0">{{ authService.currentUser()?.name }}</span>
-                        <span class="text-sm text-muted-color">{{ rolLabel() }}</span>
-                    </div>
-                    <p-avatar
-                        [label]="initials()"
-                        shape="circle"
-                        size="large"
-                        [style]="{ 'background-color': 'var(--p-primary-100)', color: 'var(--p-primary-700)' }"
-                        styleClass="border border-surface-200 dark:border-surface-700">
-                    </p-avatar>
+                    <a routerLink="/app/perfil" class="topbar-profile-link flex items-center gap-3" title="Ver mi perfil">
+                        <div class="flex flex-col items-end leading-tight mr-1">
+                            <span class="font-semibold text-surface-900 dark:text-surface-0">{{ authService.currentUser()?.name }}</span>
+                            <span class="text-sm text-muted-color">{{ rolLabel() }}</span>
+                        </div>
+                        <p-avatar
+                            [label]="initials()"
+                            shape="circle"
+                            size="large"
+                            [style]="{ 'background-color': 'var(--p-primary-100)', color: 'var(--p-primary-700)' }"
+                            styleClass="border border-surface-200 dark:border-surface-700">
+                        </p-avatar>
+                    </a>
 
                     <button type="button" class="layout-topbar-action ml-2" (click)="logout()" title="Cerrar sesión">
                         <i class="pi pi-sign-out"></i>
@@ -85,6 +87,9 @@ import { Paciente } from '@/app/core/models/paciente.model';
     styles: [`
         /* ── Marca institucional COSSMIL (escudo en disco blanco) ── */
         .cossmil-brand { display: flex; align-items: center; gap: 0.7rem; text-decoration: none; }
+        .topbar-profile-link { text-decoration: none; border-radius: 0.75rem; padding: 0.25rem 0.4rem; transition: background-color .15s ease; }
+        .topbar-profile-link:hover { background: var(--p-surface-100); }
+        :host-context(.app-dark) .topbar-profile-link:hover { background: var(--p-surface-800); }
         .cossmil-brand__badge {
             flex: none; width: 2.6rem; height: 2.6rem; border-radius: 9999px;
             display: flex; align-items: center; justify-content: center;

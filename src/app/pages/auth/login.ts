@@ -7,8 +7,11 @@ import { InputTextModule } from 'primeng/inputtext';
 import { PasswordModule } from 'primeng/password';
 import { MessageModule } from 'primeng/message';
 import { gsap } from 'gsap';
+import { SplitText } from 'gsap/SplitText';
 import { AuthService } from '../../core/services/auth.service';
 import { AuthResponse } from '../../core/models/auth-response';
+
+gsap.registerPlugin(SplitText);
 
 type Rol = 'DOCTOR' | 'ENFERMERA';
 
@@ -122,14 +125,14 @@ type Rol = 'DOCTOR' | 'ENFERMERA';
         :host { display: block; }
 
         .brand-panel {
-            background: linear-gradient(140deg, var(--p-primary-700) 0%, var(--p-primary-500) 45%, #0f766e 100%);
+            background: linear-gradient(140deg, var(--p-primary-800) 0%, var(--p-primary-600) 45%, var(--p-primary-500) 100%);
         }
         .brand-glow {
-            position: absolute; border-radius: 9999px; filter: blur(70px); opacity: .45; pointer-events: none;
+            position: absolute; border-radius: 9999px; filter: blur(70px); opacity: .45; pointer-events: none; will-change: transform;
         }
         .brand-emblem { box-shadow: 0 8px 22px rgba(0,0,0,.18); }
         .brand-glow-1 { width: 380px; height: 380px; background: rgba(255,255,255,.35); top: -120px; right: -80px; }
-        .brand-glow-2 { width: 300px; height: 300px; background: rgba(16,185,129,.5); bottom: -100px; left: -60px; }
+        .brand-glow-2 { width: 300px; height: 300px; background: rgba(34,211,238,.5); bottom: -100px; left: -60px; }
 
         .role-card {
             display: flex; flex-direction: column; align-items: center; gap: .35rem;
@@ -159,6 +162,9 @@ export class Login implements AfterViewInit, OnDestroy {
     private host = inject(ElementRef<HTMLElement>);
     private platformId = inject(PLATFORM_ID);
     private ctx?: gsap.Context;
+    private split?: SplitText;
+    private parallaxPanel?: HTMLElement | null;
+    private onPointerMove?: (e: PointerEvent) => void;
 
     username = '';
     password = '';
@@ -255,12 +261,25 @@ export class Login implements AfterViewInit, OnDestroy {
 
         const el = this.host.nativeElement;
         this.ctx = gsap.context(() => {
+            // Título: revelado palabra por palabra subiendo tras una máscara (estilo Apple).
+            const titleEl = el.querySelector('.brand-title');
+            try {
+                if (titleEl) this.split = new SplitText(titleEl as HTMLElement, { type: 'words', mask: 'words' });
+            } catch { this.split = undefined; }
+
             const tl = gsap.timeline({ defaults: { ease: 'power3.out' } });
 
             tl.from('.brand-panel', { xPercent: -8, opacity: 0, duration: 0.7 })
-                .from('.brand-logo', { y: -16, opacity: 0, duration: 0.5 }, '-=0.35')
-                .from(['.brand-title', '.brand-sub', '.brand-foot'], { y: 24, opacity: 0, duration: 0.6, stagger: 0.12 }, '-=0.3')
-                .from('.login-card', { y: 24, opacity: 0, duration: 0.6 }, '-=0.5')
+                .from('.brand-logo', { y: -16, opacity: 0, duration: 0.5 }, '-=0.35');
+
+            if (this.split?.words?.length) {
+                tl.from(this.split.words, { yPercent: 115, opacity: 0, duration: 0.7, stagger: 0.045, ease: 'power4.out' }, '-=0.2');
+            } else {
+                tl.from('.brand-title', { y: 24, opacity: 0, duration: 0.6 }, '-=0.2');
+            }
+
+            tl.from(['.brand-sub', '.brand-foot'], { y: 24, opacity: 0, duration: 0.6, stagger: 0.12 }, '-=0.35')
+                .from('.login-card', { y: 24, opacity: 0, duration: 0.6 }, '-=0.55')
                 .from('.role-card', { y: 18, opacity: 0, duration: 0.45, stagger: 0.1 }, '-=0.3')
                 .from('.form-field', { y: 14, opacity: 0, duration: 0.4, stagger: 0.08 }, '-=0.2');
 
@@ -272,6 +291,27 @@ export class Login implements AfterViewInit, OnDestroy {
                 repeat: -1,
                 repeatDelay: 0.4
             });
+
+            // Parallax del panel de marca siguiendo el puntero (solo desktop).
+            this.parallaxPanel = el.querySelector('.brand-panel');
+            if (this.parallaxPanel && window.matchMedia('(min-width: 1024px)').matches) {
+                const g1x = gsap.quickTo('.brand-glow-1', 'xPercent', { duration: 0.9, ease: 'power3' });
+                const g1y = gsap.quickTo('.brand-glow-1', 'yPercent', { duration: 0.9, ease: 'power3' });
+                const g2x = gsap.quickTo('.brand-glow-2', 'xPercent', { duration: 0.9, ease: 'power3' });
+                const g2y = gsap.quickTo('.brand-glow-2', 'yPercent', { duration: 0.9, ease: 'power3' });
+                const bx = gsap.quickTo('.brand-logo', 'x', { duration: 1, ease: 'power3' });
+                const by = gsap.quickTo('.brand-logo', 'y', { duration: 1, ease: 'power3' });
+
+                this.onPointerMove = (e: PointerEvent) => {
+                    const r = this.parallaxPanel!.getBoundingClientRect();
+                    const px = (e.clientX - r.left) / r.width - 0.5;
+                    const py = (e.clientY - r.top) / r.height - 0.5;
+                    g1x(px * 26); g1y(py * 26);
+                    g2x(px * -36); g2y(py * -36);
+                    bx(px * 10); by(py * 10);
+                };
+                this.parallaxPanel.addEventListener('pointermove', this.onPointerMove);
+            }
         }, el);
     }
 
@@ -286,6 +326,10 @@ export class Login implements AfterViewInit, OnDestroy {
     }
 
     ngOnDestroy(): void {
+        if (this.parallaxPanel && this.onPointerMove) {
+            this.parallaxPanel.removeEventListener('pointermove', this.onPointerMove);
+        }
+        this.split?.revert();
         this.ctx?.revert();
     }
 }

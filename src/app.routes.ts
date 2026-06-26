@@ -26,6 +26,11 @@ export const appRoutes: Routes = [
                 loadChildren: () => import('./app/features/enfermeria/enfermeria.routes').then((m) => m.ENFERMERIA_ROUTES)
             },
             {
+                // Mi perfil — disponible para cualquier usuario autenticado
+                path: 'perfil',
+                loadComponent: () => import('./app/pages/perfil/perfil.component').then((m) => m.PerfilComponent)
+            },
+            {
                 // Redirección inteligente según el rol del usuario logueado
                 path: '',
                 pathMatch: 'full',

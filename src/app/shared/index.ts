@@ -14,9 +14,12 @@
 
 // Exports de componentes compartidos
 export { FormHeaderComponent } from './components/form-header/form-header.component';
+export { ProfileCardComponent } from './components/profile-card/profile-card.component';
 export { PacienteHeaderComponent } from './components/paciente-header/paciente-header.component';
 export { PacienteSearchComponent } from './components/paciente-search/paciente-search.component';
 export { ServiciosCheckboxComponent } from './components/servicios-checkbox/servicios-checkbox.component';
 
 // Directivas compartidas
 export { RevealDirective } from './directives/reveal.directive';
+export { ScrollRevealDirective } from './directives/scroll-reveal.directive';
+export { CountUpDirective } from './directives/count-up.directive';
