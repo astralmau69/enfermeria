@@ -175,6 +175,107 @@ label.field-label, .field-label {
 .empty-state i { font-size: 1.9rem; color: var(--p-primary-300); }
 .empty-state__title { font-weight: 600; color: var(--p-text-color); }
 
+/* ── Barra de paciente activo (compacta, reemplaza cabeceras de papel) ────── */
+.pac-bar {
+    display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem;
+    padding: 0.7rem 1.1rem; border-radius: 0.85rem; margin-bottom: 1.1rem;
+    background: var(--p-surface-0); border: 1px solid var(--p-surface-200);
+    border-left: 4px solid var(--p-primary-500);
+    box-shadow: 0 1px 4px rgba(0,0,0,.04);
+}
+.app-dark .pac-bar { background: var(--p-surface-900); border-color: var(--p-surface-700); border-left-color: var(--p-primary-400); }
+.pac-bar__name { font-weight: 700; font-size: 0.95rem; color: var(--p-text-color); }
+.pac-bar__meta { font-size: 0.76rem; color: var(--p-text-muted-color); margin-top: 0.1rem; }
+
+/* ── Código de formulario (badge IBM Plex Mono) ───────────────────────────── */
+.form-code-badge {
+    font-family: var(--font-mono); font-size: 0.72rem; font-weight: 700;
+    color: var(--p-primary-700); background: var(--p-primary-50);
+    padding: 0.22rem 0.65rem; border-radius: 0.4rem; white-space: nowrap;
+}
+.app-dark .form-code-badge { background: color-mix(in srgb, var(--p-primary-color) 15%, var(--p-surface-900)); color: var(--p-primary-200); }
+
+/* ── Panel de registro rápido ────────────────────────────────────────────── */
+.quick-panel {
+    border-radius: 1rem; overflow: hidden; margin-bottom: 1.5rem;
+    border: 1px solid var(--p-surface-200);
+    box-shadow: 0 2px 6px rgba(0,0,0,.05), 0 12px 28px -14px rgba(0,0,0,.18);
+}
+.quick-panel__header {
+    display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.75rem;
+    padding: 0.9rem 1.25rem;
+    background: linear-gradient(120deg, var(--p-primary-700), var(--p-primary-500) 70%, #0f766e);
+    color: #fff;
+}
+.quick-panel__title {
+    font-family: var(--font-display); font-weight: 700; font-size: 1.05rem; color: #fff;
+}
+.quick-panel__body { padding: 1.1rem 1.25rem; background: var(--p-surface-0); }
+.app-dark .quick-panel__body { background: var(--p-surface-900); }
+
+/* ── Tarjeta de signo vital ──────────────────────────────────────────────── */
+.vital-card {
+    background: var(--p-surface-0); border: 1px solid var(--p-surface-200);
+    border-radius: 0.85rem; padding: 0.9rem 1rem;
+    display: flex; flex-direction: column; gap: 0.5rem;
+    transition: box-shadow .15s ease;
+}
+.app-dark .vital-card { background: var(--p-surface-900); border-color: var(--p-surface-700); }
+.vital-card:hover { box-shadow: 0 4px 14px -4px rgba(0,0,0,.12); }
+.vital-card__label { font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; color: var(--p-text-muted-color); }
+.vital-card__hint { font-size: 0.7rem; color: var(--p-text-muted-color); }
+.vital-status { display: inline-flex; align-items: center; gap: 0.25rem; font-size: 0.7rem; font-weight: 700; padding: 0.12rem 0.5rem; border-radius: 9999px; }
+.vital-status--normal { background: #dcfce7; color: #15803d; }
+.vital-status--high   { background: #fee2e2; color: #b91c1c; }
+.vital-status--low    { background: #dbeafe; color: #1d4ed8; }
+.vital-status--warn   { background: #fef3c7; color: #92400e; }
+
+/* ── Timeline de notas ────────────────────────────────────────────────────── */
+.tl-container {
+    position: relative; padding-left: 2rem;
+    border-left: 2px solid var(--p-surface-200);
+}
+.app-dark .tl-container { border-left-color: var(--p-surface-700); }
+.tl-item { position: relative; padding: 0 0 1rem 1.25rem; }
+.tl-item:last-child { padding-bottom: 0; }
+.tl-dot {
+    position: absolute; left: -0.55rem; top: 0.35rem;
+    width: 0.85rem; height: 0.85rem; border-radius: 9999px;
+    background: var(--p-primary-500); border: 2px solid var(--p-surface-0);
+    box-shadow: 0 0 0 2px var(--p-primary-200);
+}
+.app-dark .tl-dot { border-color: var(--p-surface-900); }
+.tl-item--manana .tl-dot { background: var(--p-primary-500); }
+.tl-item--tarde   .tl-dot { background: #f59e0b; box-shadow: 0 0 0 2px #fde68a; }
+.tl-item--noche   .tl-dot { background: #6366f1; box-shadow: 0 0 0 2px #c7d2fe; }
+.tl-card {
+    background: var(--p-surface-0); border: 1px solid var(--p-surface-200);
+    border-radius: 0.75rem; padding: 0.85rem 1rem;
+}
+.app-dark .tl-card { background: var(--p-surface-900); border-color: var(--p-surface-700); }
+.tl-card__head { display: flex; align-items: center; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.5rem; }
+.tl-fecha { font-family: var(--font-mono); font-size: 0.72rem; color: var(--p-text-muted-color); }
+.tl-turno-badge {
+    font-size: 0.65rem; font-weight: 700; padding: 0.1rem 0.45rem; border-radius: 9999px;
+}
+.tl-turno-badge--manana { background: #dcfce7; color: #15803d; }
+.tl-turno-badge--tarde  { background: #fef3c7; color: #92400e; }
+.tl-turno-badge--noche  { background: #e0e7ff; color: #4338ca; }
+.tl-proc { font-size: 0.78rem; font-weight: 600; color: var(--p-primary-700); }
+.tl-firma { margin-left: auto; font-size: 0.72rem; color: var(--p-text-muted-color); }
+.tl-desc { font-size: 0.87rem; color: var(--p-text-color); line-height: 1.6; white-space: pre-wrap; margin: 0; }
+
+/* ── Selector de turno visual ────────────────────────────────────────────── */
+.turno-selector { display: flex; gap: 0.4rem; }
+.turno-btn {
+    flex: 1; padding: 0.5rem 0.75rem; border-radius: 0.6rem; font-weight: 600; font-size: 0.82rem;
+    border: 1.5px solid var(--p-surface-300); background: var(--p-surface-50); color: var(--p-text-muted-color);
+    cursor: pointer; transition: all .14s ease; text-align: center;
+}
+.turno-btn.active-manana { border-color: var(--p-primary-400); background: var(--p-primary-50); color: var(--p-primary-700); }
+.turno-btn.active-tarde  { border-color: #f59e0b; background: #fef3c7; color: #92400e; }
+.turno-btn.active-noche  { border-color: #6366f1; background: #e0e7ff; color: #4338ca; }
+
 /* ── Toast / Toolbar ──────────────────────────────────────────────────────── */
 .p-toolbar { border-radius: 0.85rem; }
 

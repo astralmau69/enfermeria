@@ -5,7 +5,8 @@ import { environment } from '../../environments/environment.development';
 import {
     getDb, persist, nextId, upsertByPaciente,
     ensureEvolucion, ensureExamenes, ensureNotas, ensureMedicamentos,
-    ensureSignos, ensureEstadistico, ensureConsentimiento
+    ensureSignos, ensureEstadistico, ensureConsentimiento,
+    ensureBalance, ensureDispositivos, ensureCuraciones, ensureGlucemia
 } from './mock-db';
 
 const LATENCY_MS = 220;
@@ -243,6 +244,136 @@ const HANDLERS: Handler[] = [
                 persist();
                 return db.camas[i];
             }
+            return null;
+        }
+    },
+
+    // ── Interconsultas por especialidad ──────────────────────────────────────
+    {
+        method: 'GET', pattern: /\/api\/interconsultas\/(\d+)$/,
+        run: (p) => getDb().interconsultas.find((x) => x.id === +p[0]) ?? null
+    },
+    {
+        method: 'GET', pattern: /\/api\/interconsultas$/,
+        run: () => getDb().interconsultas
+    },
+    {
+        method: 'POST', pattern: /\/api\/interconsultas$/,
+        run: (_p, body) => {
+            const db = getDb();
+            const created = {
+                ...body,
+                id: nextId(),
+                estado: body.estado || 'SOLICITADA',
+                fechaSolicitud: body.fechaSolicitud || new Date().toISOString().split('T')[0],
+                gestionadaPor: body.gestionadaPor || currentUserName()
+            };
+            db.interconsultas.push(created);
+            persist();
+            return created;
+        }
+    },
+    {
+        method: 'PUT', pattern: /\/api\/interconsultas\/(\d+)$/,
+        run: (p, body) => {
+            const db = getDb();
+            const i = db.interconsultas.findIndex((x) => x.id === +p[0]);
+            if (i >= 0) { db.interconsultas[i] = { ...db.interconsultas[i], ...body, id: db.interconsultas[i].id }; persist(); return db.interconsultas[i]; }
+            return null;
+        }
+    },
+
+    // ── Procedimientos ambulatorios (Consulta Externa) ───────────────────────
+    {
+        method: 'GET', pattern: /\/api\/procedimientos-ambulatorios$/,
+        run: () => getDb().procedimientosAmbulatorios
+    },
+    {
+        method: 'POST', pattern: /\/api\/procedimientos-ambulatorios$/,
+        run: (_p, body) => {
+            const db = getDb();
+            const created = {
+                ...body,
+                id: nextId(),
+                estado: body.estado || 'PENDIENTE',
+                fecha: body.fecha || new Date().toISOString().split('T')[0]
+            };
+            db.procedimientosAmbulatorios.push(created);
+            persist();
+            return created;
+        }
+    },
+    {
+        method: 'PUT', pattern: /\/api\/procedimientos-ambulatorios\/(\d+)$/,
+        run: (p, body) => {
+            const db = getDb();
+            const i = db.procedimientosAmbulatorios.findIndex((x) => x.id === +p[0]);
+            if (i >= 0) { db.procedimientosAmbulatorios[i] = { ...db.procedimientosAmbulatorios[i], ...body, id: db.procedimientosAmbulatorios[i].id }; persist(); return db.procedimientosAmbulatorios[i]; }
+            return null;
+        }
+    },
+
+    // ── Cuidados de enfermería (1 por paciente: get-or-create + upsert) ───────
+    {
+        method: 'GET', pattern: /\/api\/enfermeria\/balance\/paciente\/(\d+)$/,
+        run: (p) => ensureBalance(+p[0])
+    },
+    {
+        method: 'POST', pattern: /\/api\/enfermeria\/balance$/,
+        run: (_p, body) => upsertByPaciente(getDb().balances, body)
+    },
+    {
+        method: 'GET', pattern: /\/api\/enfermeria\/dispositivos\/paciente\/(\d+)$/,
+        run: (p) => ensureDispositivos(+p[0])
+    },
+    {
+        method: 'POST', pattern: /\/api\/enfermeria\/dispositivos$/,
+        run: (_p, body) => upsertByPaciente(getDb().dispositivos, body)
+    },
+    {
+        method: 'GET', pattern: /\/api\/enfermeria\/curaciones\/paciente\/(\d+)$/,
+        run: (p) => ensureCuraciones(+p[0])
+    },
+    {
+        method: 'POST', pattern: /\/api\/enfermeria\/curaciones$/,
+        run: (_p, body) => upsertByPaciente(getDb().curaciones, body)
+    },
+    {
+        method: 'GET', pattern: /\/api\/enfermeria\/glucemia\/paciente\/(\d+)$/,
+        run: (p) => ensureGlucemia(+p[0])
+    },
+    {
+        method: 'POST', pattern: /\/api\/enfermeria\/glucemia$/,
+        run: (_p, body) => upsertByPaciente(getDb().glucemias, body)
+    },
+
+    // ── Emergencias (triage) ─────────────────────────────────────────────────
+    {
+        method: 'GET', pattern: /\/api\/emergencias$/,
+        run: () => getDb().emergencias
+    },
+    {
+        method: 'POST', pattern: /\/api\/emergencias$/,
+        run: (_p, body) => {
+            const db = getDb();
+            const created = {
+                ...body,
+                id: nextId(),
+                estado: body.estado || 'EN_TRIAGE',
+                fecha: body.fecha || new Date().toISOString().split('T')[0],
+                enfermera: body.enfermera || currentUserName()
+            };
+            db.emergencias.push(created);
+            persist();
+            return created;
+        }
+    },
+    {
+        method: 'PUT', pattern: /\/api\/emergencias\/(\d+)$/,
+        run: (p, body) => {
+            const db = getDb();
+            const i = db.emergencias.findIndex((x) => x.id === +p[0]);
+            if (i >= 0) { db.emergencias[i] = { ...db.emergencias[i], ...body, id: db.emergencias[i].id }; persist(); return db.emergencias[i]; }
             return null;
         }
     }

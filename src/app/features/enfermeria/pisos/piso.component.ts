@@ -1,7 +1,7 @@
 import { Component, inject, signal, computed, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
 import { SelectModule } from 'primeng/select';
@@ -33,7 +33,7 @@ import { Cama, Piso, PISOS, TURNOS, TurnoNombre, rolDeTurno, turnoActual } from 
             <div class="fb__id">
                 <span class="fb__num">{{ piso().numero }}</span>
                 <div>
-                    <div class="fb__eyebrow">Hospitalización · Mapa de camas</div>
+                    <div class="fb__eyebrow">Hospitalización por especialidad · Mapa de camas</div>
                     <h1 class="fb__title">Piso {{ piso().numero }} — {{ piso().nombre }}</h1>
                     <p class="fb__sub">{{ ocupadas() }}/{{ total() }} ocupadas · {{ tasaOcupacion() }}% ocupación · {{ libres() }} libres · {{ reservadas() }} reservadas</p>
                 </div>
@@ -79,8 +79,8 @@ import { Cama, Piso, PISOS, TURNOS, TurnoNombre, rolDeTurno, turnoActual } from 
         } @else if (camasOrdenadas().length === 0) {
             <div class="empty-state">
                 <i class="pi pi-building"></i>
-                <span class="empty-state__title">Piso {{ piso().numero }} — {{ piso().nombre }} aún no simulado</span>
-                <span>Por ahora solo el <b>Piso 1 · Cirugía</b> tiene el mapa de camas cargado.</span>
+                <span class="empty-state__title">Piso {{ piso().numero }} — {{ piso().nombre }} sin camas cargadas</span>
+                <span>Elegí otra especialidad en el selector de arriba.</span>
             </div>
         } @else {
             <div class="beds">
@@ -109,6 +109,8 @@ import { Cama, Piso, PISOS, TURNOS, TurnoNombre, rolDeTurno, turnoActual } from 
                                 <button pButton type="button" icon="pi pi-chart-line" class="p-button-text p-button-sm" pTooltip="Signos vitales" tooltipPosition="top" (click)="abrir('signos-vitales', p.id!)"></button>
                                 <button pButton type="button" icon="pi pi-box" class="p-button-text p-button-sm" pTooltip="Medicamentos (Kardex)" tooltipPosition="top" (click)="abrir('medicamentos', p.id!)"></button>
                                 <button pButton type="button" icon="pi pi-pencil" class="p-button-text p-button-sm" pTooltip="Notas diarias" tooltipPosition="top" (click)="abrir('notas-diarias', p.id!)"></button>
+                                <button pButton type="button" icon="pi pi-sliders-h" class="p-button-text p-button-sm" pTooltip="Balance hídrico" tooltipPosition="top" (click)="abrir('balance-hidrico', p.id!)"></button>
+                                <button pButton type="button" icon="pi pi-percentage" class="p-button-text p-button-sm" pTooltip="Glucometría" tooltipPosition="top" (click)="abrir('glucometria', p.id!)"></button>
                                 <span class="flex-1"></span>
                                 <button pButton type="button" icon="pi pi-arrow-right-arrow-left" class="p-button-text p-button-sm" pTooltip="Trasladar a otra cama / sector" tooltipPosition="top" (click)="abrirTraslado(c)"></button>
                                 <button pButton type="button" icon="pi pi-sign-out" class="p-button-text p-button-sm" severity="secondary" pTooltip="Dar de alta / liberar cama" tooltipPosition="top" (click)="liberar(c)"></button>
@@ -314,6 +316,7 @@ export class PisoComponent {
     private activo = inject(PacienteActivoService);
     private pisoService = inject(PisoService);
     private router = inject(Router);
+    private route = inject(ActivatedRoute);
     private messageService = inject(MessageService);
 
     readonly pisos = PISOS;
@@ -365,6 +368,11 @@ export class PisoComponent {
     });
 
     constructor() {
+        // Deep-link opcional: /hospitalizacion/:pisoNumero abre esa especialidad.
+        this.route.paramMap.subscribe((pm) => {
+            const n = pm.get('pisoNumero');
+            if (n && +n >= 1 && +n <= 9) this.pisoNumero.set(+n);
+        });
         this.pacienteService.getAll().subscribe((d) => this.pacientes.set(d));
         this.cargarTodas();
         effect(() => {

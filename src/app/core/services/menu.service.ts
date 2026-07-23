@@ -34,48 +34,62 @@ export class MenuService {
             ]
         },
         {
-            label: 'Enfermería',
+            label: 'Guía',
             roles: ['ENFERMERA'],
             items: [
-                {
-                    label: 'Inicio de Turno',
-                    icon: 'pi pi-fw pi-home',
-                    routerLink: ['/app/enfermeria/inicio'],
-                    roles: ['ENFERMERA']
-                },
-                {
-                    label: 'Pacientes en Piso',
-                    icon: 'pi pi-fw pi-users',
-                    routerLink: ['/app/enfermeria/pacientes'],
-                    roles: ['ENFERMERA']
-                },
-                {
-                    label: 'Mapa de Camas',
-                    icon: 'pi pi-fw pi-th-large',
-                    routerLink: ['/app/enfermeria/pisos'],
-                    roles: ['ENFERMERA']
-                }
+                { label: 'Índice del módulo', icon: 'pi pi-fw pi-compass', routerLink: ['/app/enfermeria/indice'], roles: ['ENFERMERA'] }
+            ]
+        },
+        {
+            label: 'Mi Turno',
+            roles: ['ENFERMERA'],
+            items: [
+                { label: 'Inicio de Turno', icon: 'pi pi-fw pi-home', routerLink: ['/app/enfermeria/inicio'], roles: ['ENFERMERA'] }
+            ]
+        },
+        {
+            label: 'Emergencias',
+            roles: ['ENFERMERA'],
+            items: [
+                { label: 'Triage / Emergencias', icon: 'pi pi-fw pi-exclamation-triangle', routerLink: ['/app/enfermeria/emergencias'], roles: ['ENFERMERA'] }
             ]
         },
         {
             label: 'Consulta Externa',
             roles: ['ENFERMERA'],
             items: [
-                {
-                    label: 'Recepción / Turnos',
-                    icon: 'pi pi-fw pi-inbox',
-                    routerLink: ['/app/enfermeria/consulta-externa'],
-                    roles: ['ENFERMERA']
-                }
+                { label: 'Consultorios por Especialidad', icon: 'pi pi-fw pi-th-large', routerLink: ['/app/enfermeria/consultorios'], roles: ['ENFERMERA'] },
+                { label: 'Recepción / Turnos', icon: 'pi pi-fw pi-inbox', routerLink: ['/app/enfermeria/consulta-externa'], roles: ['ENFERMERA'] },
+                { label: 'Procedimientos Ambulatorios', icon: 'pi pi-fw pi-bolt', routerLink: ['/app/enfermeria/procedimientos-ambulatorios'], roles: ['ENFERMERA'] }
             ]
         },
         {
-            label: 'Hojas de Enfermería',
+            label: 'Hospitalización',
+            roles: ['ENFERMERA'],
+            items: [
+                { label: 'Pacientes en Piso', icon: 'pi pi-fw pi-users', routerLink: ['/app/enfermeria/pacientes'], roles: ['ENFERMERA'] },
+                { label: 'Por Especialidad', icon: 'pi pi-fw pi-th-large', routerLink: ['/app/enfermeria/hospitalizacion'], roles: ['ENFERMERA'] },
+                { label: 'Terapia Intensiva (UTI)', icon: 'pi pi-fw pi-heart-fill', routerLink: ['/app/enfermeria/hospitalizacion', '9'], roles: ['ENFERMERA'] }
+            ]
+        },
+        {
+            label: 'Interconsultas',
+            roles: ['ENFERMERA'],
+            items: [
+                { label: 'Por Especialidad', icon: 'pi pi-fw pi-send', routerLink: ['/app/enfermeria/interconsultas'], roles: ['ENFERMERA'] }
+            ]
+        },
+        {
+            label: 'Cuidados de Enfermería',
             roles: ['ENFERMERA'],
             items: [
                 { label: 'Signos Vitales', icon: 'pi pi-fw pi-chart-line', routerLink: ['/app/enfermeria/signos-vitales'], roles: ['ENFERMERA'] },
-                { label: 'Notas Diarias', icon: 'pi pi-fw pi-pencil', routerLink: ['/app/enfermeria/notas-diarias'], roles: ['ENFERMERA'] },
-                { label: 'Medicamentos', icon: 'pi pi-fw pi-box', routerLink: ['/app/enfermeria/medicamentos'], roles: ['ENFERMERA'] }
+                { label: 'Medicamentos (Kardex)', icon: 'pi pi-fw pi-box', routerLink: ['/app/enfermeria/medicamentos'], roles: ['ENFERMERA'] },
+                { label: 'Notas de Enfermería', icon: 'pi pi-fw pi-pencil', routerLink: ['/app/enfermeria/notas-diarias'], roles: ['ENFERMERA'] },
+                { label: 'Balance Hídrico', icon: 'pi pi-fw pi-sliders-h', routerLink: ['/app/enfermeria/balance-hidrico'], roles: ['ENFERMERA'] },
+                { label: 'Sondas y Vías', icon: 'pi pi-fw pi-link', routerLink: ['/app/enfermeria/dispositivos'], roles: ['ENFERMERA'] },
+                { label: 'Curaciones', icon: 'pi pi-fw pi-plus-circle', routerLink: ['/app/enfermeria/curaciones'], roles: ['ENFERMERA'] },
+                { label: 'Glucometría', icon: 'pi pi-fw pi-percentage', routerLink: ['/app/enfermeria/glucometria'], roles: ['ENFERMERA'] }
             ]
         },
         {

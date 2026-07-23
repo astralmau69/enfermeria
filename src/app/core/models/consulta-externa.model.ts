@@ -5,6 +5,7 @@
  * → pasa al médico. Cada consulta es un registro independiente del día (no es
  * 1-por-paciente como las hojas de piso).
  */
+import { ESPECIALIDADES } from './especialidad.model';
 
 export type EstadoConsulta = 'EN_ESPERA' | 'EN_PREPARACION' | 'LISTO_MEDICO' | 'ATENDIDO';
 export type PrioridadConsulta = 'NORMAL' | 'PREFERENCIAL';
@@ -44,16 +45,5 @@ export interface ConsultaExterna {
     horaConstantes?: string;  // HH:mm
 }
 
-/** Especialidades disponibles en consulta externa (catálogo demo). */
-export const ESPECIALIDADES_CE: string[] = [
-    'MEDICINA INTERNA',
-    'CARDIOLOGIA',
-    'CIRUGIA GENERAL',
-    'TRAUMATOLOGIA',
-    'GINECOLOGIA',
-    'PEDIATRIA',
-    'ENDOCRINOLOGIA',
-    'NEUROLOGIA',
-    'DERMATOLOGIA',
-    'ODONTOLOGIA'
-];
+/** Especialidades disponibles en consulta externa (derivadas del catálogo COSSMIL). */
+export const ESPECIALIDADES_CE: string[] = ESPECIALIDADES.map((e) => e.nombre);

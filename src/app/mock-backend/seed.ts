@@ -11,6 +11,10 @@ import { EvolucionTratamiento, ExamenComplementario } from '../core/models/evolu
 import { NotaDiariaEnfermeria, RegistroMedicamentos, CuadroSignosVitales } from '../core/models/enfermeria.model';
 import { ConsultaExterna } from '../core/models/consulta-externa.model';
 import { Cama } from '../core/models/piso.model';
+import { Interconsulta } from '../core/models/interconsulta.model';
+import { ProcedimientoAmbulatorio } from '../core/models/procedimiento-ambulatorio.model';
+import { BalanceHidrico, ControlDispositivos, RegistroCuraciones, ControlGlucemia } from '../core/models/cuidados-enfermeria.model';
+import { PacienteEmergencia } from '../core/models/emergencia.model';
 
 const sinServicios = () => ({ pt1: false, pt2: false, pip: false, pipa: false, papa: false, pic: false });
 
@@ -458,14 +462,14 @@ export const SEED_CONSULTAS_EXTERNAS: ConsultaExterna[] = [
     },
     {
         id: 3, pacienteId: 5, carnetAsegurado: '920304CRV', carnetBeneficiario: '610508MRV',
-        fecha: HOY, numeroTurno: 'CE-003', especialidad: 'GINECOLOGIA', medico: 'CESPEDES ROMERO LAURA',
+        fecha: HOY, numeroTurno: 'CE-003', especialidad: 'GINECOLOGIA Y OBSTETRICIA', medico: 'CESPEDES ROMERO LAURA',
         motivoConsulta: 'Control ginecológico de rutina.',
         estado: 'EN_PREPARACION', prioridad: 'NORMAL', horaRecepcion: '08:05',
         constantes: { peso: 62, talla: 160 }
     },
     {
         id: 4, pacienteId: 8, carnetAsegurado: '810919JSM',
-        fecha: HOY, numeroTurno: 'CE-004', especialidad: 'TRAUMATOLOGIA', medico: 'PINTO SALDAÑA MARCELO',
+        fecha: HOY, numeroTurno: 'CE-004', especialidad: 'TRAUMATOLOGIA Y ORTOPEDIA', medico: 'PINTO SALDAÑA MARCELO',
         motivoConsulta: 'Dolor lumbar mecánico de 2 semanas.',
         estado: 'LISTO_MEDICO', prioridad: 'NORMAL', horaRecepcion: '08:10', horaConstantes: '08:20',
         enfermeraNombre: 'Lic. Jacquelin Silva Quispe',
@@ -480,7 +484,21 @@ export const SEED_CONSULTAS_EXTERNAS: ConsultaExterna[] = [
         enfermeraNombre: 'Lic. Jacquelin Silva Quispe',
         alergias: 'Penicilina',
         constantes: { paSistolica: 140, paDiastolica: 88, fc: 80, fr: 18, temperatura: 36.4, saturacion: 95, peso: 78, talla: 170, imc: 27.0, glucemia: 186 }
-    }
+    },
+    // ── Más consultorios del día (varias especialidades) ─────────────────────
+    { id: 6, pacienteId: 7, carnetAsegurado: '970625MCA', fecha: HOY, numeroTurno: 'CE-006', especialidad: 'DERMATOLOGIA', motivoConsulta: 'Erupción cutánea pruriginosa.', estado: 'EN_ESPERA', prioridad: 'NORMAL', horaRecepcion: '08:15' },
+    { id: 7, pacienteId: 6, carnetAsegurado: '581017LFC', fecha: HOY, numeroTurno: 'CE-007', especialidad: 'OFTALMOLOGIA', motivoConsulta: 'Control de agudeza visual.', estado: 'EN_ESPERA', prioridad: 'NORMAL', horaRecepcion: '08:22' },
+    { id: 8, pacienteId: 13, carnetAsegurado: '970331MTA', fecha: HOY, numeroTurno: 'CE-008', especialidad: 'OTORRINOLARINGOLOGIA', motivoConsulta: 'Otalgia y disminución de audición.', estado: 'EN_ESPERA', prioridad: 'NORMAL', horaRecepcion: '08:28' },
+    { id: 9, pacienteId: 4, carnetAsegurado: '651122PCM', fecha: HOY, numeroTurno: 'CE-009', especialidad: 'MEDICINA INTERNA', motivoConsulta: 'Control de diabetes e hipertensión.', estado: 'EN_PREPARACION', prioridad: 'NORMAL', horaRecepcion: '07:58', constantes: { peso: 82, talla: 172 } },
+    { id: 10, pacienteId: 8, carnetAsegurado: '810919JSM', fecha: HOY, numeroTurno: 'CE-010', especialidad: 'CARDIOLOGIA', medico: 'GUTIERREZ ARANA SANDRA', motivoConsulta: 'Dolor precordial atípico.', estado: 'LISTO_MEDICO', prioridad: 'PREFERENCIAL', horaRecepcion: '07:40', horaConstantes: '07:55', enfermeraNombre: 'Lic. Jacquelin Silva Quispe', constantes: { paSistolica: 135, paDiastolica: 85, fc: 78, fr: 17, temperatura: 36.5, saturacion: 97, peso: 84, talla: 178, imc: 26.5 } },
+    { id: 11, pacienteId: 11, carnetAsegurado: '810906JMC', fecha: HOY, numeroTurno: 'CE-011', especialidad: 'TRAUMATOLOGIA Y ORTOPEDIA', motivoConsulta: 'Gonalgia derecha post-esfuerzo.', estado: 'EN_ESPERA', prioridad: 'NORMAL', horaRecepcion: '08:35' },
+    { id: 12, pacienteId: 3, carnetAsegurado: '380915RTV', fecha: HOY, numeroTurno: 'CE-012', especialidad: 'GINECOLOGIA Y OBSTETRICIA', motivoConsulta: 'Control post-operatorio.', estado: 'EN_ESPERA', prioridad: 'PREFERENCIAL', horaRecepcion: '08:40' },
+    { id: 13, pacienteId: 14, carnetAsegurado: '850719CSR', fecha: HOY, numeroTurno: 'CE-013', especialidad: 'GASTROENTEROLOGIA', motivoConsulta: 'Epigastralgia y pirosis.', estado: 'EN_ESPERA', prioridad: 'NORMAL', horaRecepcion: '08:44' },
+    { id: 14, pacienteId: 2, carnetAsegurado: '420512JCR', fecha: HOY, numeroTurno: 'CE-014', especialidad: 'UROLOGIA', motivoConsulta: 'Disuria y polaquiuria.', estado: 'EN_ESPERA', prioridad: 'NORMAL', horaRecepcion: '08:50' },
+    { id: 15, pacienteId: 12, carnetAsegurado: '660725EVL', fecha: HOY, numeroTurno: 'CE-015', especialidad: 'NEUROLOGIA', motivoConsulta: 'Cefalea crónica en estudio.', estado: 'EN_PREPARACION', prioridad: 'NORMAL', horaRecepcion: '08:12', constantes: { paSistolica: 128, paDiastolica: 80 } },
+    { id: 16, pacienteId: 4, carnetAsegurado: '651122PCM', fecha: HOY, numeroTurno: 'CE-016', especialidad: 'ENDOCRINOLOGIA', motivoConsulta: 'Ajuste de tratamiento diabético.', estado: 'LISTO_MEDICO', prioridad: 'NORMAL', horaRecepcion: '07:35', horaConstantes: '07:50', enfermeraNombre: 'Lic. Vargas Rojas Elena', constantes: { paSistolica: 138, paDiastolica: 86, fc: 82, fr: 18, temperatura: 36.6, saturacion: 96, peso: 82, talla: 172, imc: 27.7, glucemia: 165 } },
+    { id: 17, pacienteId: 10, carnetAsegurado: '880412SFV', fecha: HOY, numeroTurno: 'CE-017', especialidad: 'DERMATOLOGIA', motivoConsulta: 'Lesión pigmentada en control.', estado: 'ATENDIDO', prioridad: 'NORMAL', horaRecepcion: '07:20', horaConstantes: '07:30', enfermeraNombre: 'Lic. Vargas Rojas Elena', constantes: { paSistolica: 118, paDiastolica: 74, fc: 70, fr: 16, temperatura: 36.4, saturacion: 98, peso: 60, talla: 162, imc: 22.9 } },
+    { id: 18, pacienteId: 2, carnetAsegurado: '420512JCR', fecha: HOY, numeroTurno: 'CE-018', especialidad: 'NEUMOLOGIA', motivoConsulta: 'Control post neumonía.', estado: 'EN_ESPERA', prioridad: 'NORMAL', horaRecepcion: '08:55' }
 ];
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -509,5 +527,165 @@ export const SEED_CAMAS: Cama[] = [
     { id: 17, pisoNumero: 2, codigo: 'C-205', estado: 'LIBRE' },
     { id: 18, pisoNumero: 2, codigo: 'C-206', estado: 'LIMPIEZA' },
     { id: 19, pisoNumero: 2, codigo: 'C-207', estado: 'LIBRE' },
-    { id: 20, pisoNumero: 2, codigo: 'C-208', estado: 'LIBRE' }
+    { id: 20, pisoNumero: 2, codigo: 'C-208', estado: 'LIBRE' },
+
+    // ── PISO 3 · TRAUMATOLOGÍA ──────────────────────────────────────────────
+    { id: 21, pisoNumero: 3, codigo: 'C-301', estado: 'LIBRE' },
+    { id: 22, pisoNumero: 3, codigo: 'C-302', estado: 'RESERVADA', reservaNota: 'Ingreso programado — artroplastia de rodilla' },
+    { id: 23, pisoNumero: 3, codigo: 'C-303', estado: 'LIMPIEZA' },
+    { id: 24, pisoNumero: 3, codigo: 'C-304', estado: 'LIBRE' },
+
+    // ── PISO 4 · GINECOLOGÍA Y OBSTETRICIA ──────────────────────────────────
+    { id: 25, pisoNumero: 4, codigo: 'C-401', estado: 'OCUPADA', pacienteId: 3, procedimiento: 'Miomatosis uterina — pre-quirúrgica', diaPostOp: 0, preOp: true, observacion: 'Histerectomía programada' },
+    { id: 26, pisoNumero: 4, codigo: 'C-402', estado: 'OCUPADA', pacienteId: 7, procedimiento: 'Puérpera post cesárea', diaPostOp: 1 },
+    { id: 27, pisoNumero: 4, codigo: 'C-403', estado: 'LIBRE' },
+    { id: 28, pisoNumero: 4, codigo: 'C-404', estado: 'RESERVADA', reservaNota: 'Reservada — cesárea programada' },
+
+    // ── PISO 5 · PEDIATRÍA ──────────────────────────────────────────────────
+    { id: 29, pisoNumero: 5, codigo: 'C-501', estado: 'LIBRE' },
+    { id: 30, pisoNumero: 5, codigo: 'C-502', estado: 'LIMPIEZA' },
+    { id: 31, pisoNumero: 5, codigo: 'C-503', estado: 'LIBRE' },
+    { id: 32, pisoNumero: 5, codigo: 'C-504', estado: 'RESERVADA', reservaNota: 'Observación pediátrica' },
+
+    // ── PISO 6 · CARDIOLOGÍA ────────────────────────────────────────────────
+    { id: 33, pisoNumero: 6, codigo: 'C-601', estado: 'OCUPADA', pacienteId: 6, procedimiento: 'Insuficiencia cardíaca — Fibrilación auricular', observacion: 'Monitoreo continuo · balance estricto' },
+    { id: 34, pisoNumero: 6, codigo: 'C-602', estado: 'LIBRE' },
+    { id: 35, pisoNumero: 6, codigo: 'C-603', estado: 'LIBRE' },
+    { id: 36, pisoNumero: 6, codigo: 'C-604', estado: 'RESERVADA', reservaNota: 'Reservada — post cateterismo' },
+
+    // ── PISO 7 · ONCOLOGÍA ──────────────────────────────────────────────────
+    { id: 37, pisoNumero: 7, codigo: 'C-701', estado: 'OCUPADA', pacienteId: 1, procedimiento: 'Síndrome mielodisplásico — quimioterapia', observacion: 'Precauciones por neutropenia' },
+    { id: 38, pisoNumero: 7, codigo: 'C-702', estado: 'LIBRE' },
+    { id: 39, pisoNumero: 7, codigo: 'C-703', estado: 'LIMPIEZA' },
+    { id: 40, pisoNumero: 7, codigo: 'C-704', estado: 'LIBRE' },
+
+    // ── PISO 8 · NEUROLOGÍA ─────────────────────────────────────────────────
+    { id: 41, pisoNumero: 8, codigo: 'C-801', estado: 'LIBRE' },
+    { id: 42, pisoNumero: 8, codigo: 'C-802', estado: 'RESERVADA', reservaNota: 'Reservada — ACV en estudio' },
+    { id: 43, pisoNumero: 8, codigo: 'C-803', estado: 'LIBRE' },
+    { id: 44, pisoNumero: 8, codigo: 'C-804', estado: 'LIMPIEZA' },
+
+    // ── PISO 9 · TERAPIA INTENSIVA (UCI) ────────────────────────────────────
+    { id: 45, pisoNumero: 9, codigo: 'UCI-01', estado: 'LIBRE' },
+    { id: 46, pisoNumero: 9, codigo: 'UCI-02', estado: 'RESERVADA', reservaNota: 'Reservada — post-operatorio mayor' },
+    { id: 47, pisoNumero: 9, codigo: 'UCI-03', estado: 'LIMPIEZA' },
+    { id: 48, pisoNumero: 9, codigo: 'UCI-04', estado: 'LIBRE' }
+];
+
+// ─────────────────────────────────────────────────────────────────────────────
+// INTERCONSULTAS POR ESPECIALIDAD
+// ─────────────────────────────────────────────────────────────────────────────
+export const SEED_INTERCONSULTAS: Interconsulta[] = [
+    { id: 1, pacienteId: 4, carnetAsegurado: '651122PCM', servicioOrigen: 'MEDICINA INTERNA', especialidadDestino: 'ENDOCRINOLOGIA', cama: 'C-202', motivo: 'Ajuste de esquema de insulina en diabetes descompensada.', prioridad: 'RUTINA', estado: 'PROGRAMADA', fechaSolicitud: HOY, horaSolicitud: '08:30', fechaProgramada: HOY, gestionadaPor: 'Lic. Jacquelin Silva Quispe' },
+    { id: 2, pacienteId: 2, carnetAsegurado: '420512JCR', servicioOrigen: 'MEDICINA INTERNA', especialidadDestino: 'CARDIOLOGIA', cama: 'C-201', motivo: 'Descartar compromiso cardíaco en neumonía con taquicardia.', prioridad: 'URGENTE', estado: 'SOLICITADA', fechaSolicitud: HOY, horaSolicitud: '09:10', gestionadaPor: 'Lic. Vargas Rojas Elena' },
+    { id: 3, pacienteId: 8, carnetAsegurado: '810919JSM', servicioOrigen: 'TRAUMATOLOGIA', especialidadDestino: 'MEDICINA INTERNA', cama: 'C-111', motivo: 'Valoración pre-operatoria / riesgo quirúrgico para osteosíntesis.', prioridad: 'RUTINA', estado: 'REALIZADA', fechaSolicitud: '2026-06-16', horaSolicitud: '10:00', fechaProgramada: '2026-06-16', gestionadaPor: 'Lic. Mamani Flores Patricia', respuesta: 'Paciente apto para cirugía. Riesgo cardiovascular bajo. Continuar profilaxis antitrombótica.' },
+    { id: 4, pacienteId: 1, carnetAsegurado: '510813MCR', servicioOrigen: 'ONCOLOGIA', especialidadDestino: 'CARDIOLOGIA', cama: 'C-701', motivo: 'Valoración cardiológica previa a quimioterapia.', prioridad: 'RUTINA', estado: 'SOLICITADA', fechaSolicitud: HOY, horaSolicitud: '07:55', gestionadaPor: 'Lic. Silva Quispe Jacquelin' },
+    { id: 5, pacienteId: 5, carnetAsegurado: '920304CRV', servicioOrigen: 'CIRUGIA', especialidadDestino: 'MEDICINA INTERNA', cama: 'C-102', motivo: 'Control glucémico peri-operatorio.', prioridad: 'RUTINA', estado: 'PROGRAMADA', fechaSolicitud: '2026-06-21', horaSolicitud: '15:00', fechaProgramada: HOY, gestionadaPor: 'Lic. Vargas Rojas Elena' }
+];
+
+// ─────────────────────────────────────────────────────────────────────────────
+// PROCEDIMIENTOS AMBULATORIOS (Consulta Externa)
+// ─────────────────────────────────────────────────────────────────────────────
+export const SEED_PROC_AMBULATORIOS: ProcedimientoAmbulatorio[] = [
+    { id: 1, pacienteId: 2, pacienteNombre: 'GONZALES QUISPE JUAN CARLOS', carnetAsegurado: '420512JCR', tipo: 'INYECTABLE', detalle: 'Ceftriaxona 1g IM', fecha: HOY, hora: '08:15', estado: 'REALIZADO', enfermera: 'Aux. Rosa Mamani C.' },
+    { id: 2, pacienteId: 3, pacienteNombre: 'MARTINEZ TORREZ ROSA ELENA', carnetAsegurado: '380915RTV', tipo: 'CURACION', detalle: 'Curación de herida en antebrazo izquierdo', fecha: HOY, hora: '', estado: 'PENDIENTE' },
+    { id: 3, pacienteNombre: 'APAZA MAMANI LUIS (walk-in)', tipo: 'NEBULIZACION', detalle: 'Salbutamol + bromuro de ipratropio', fecha: HOY, hora: '', estado: 'PENDIENTE' },
+    { id: 4, pacienteId: 7, pacienteNombre: 'CONDORI APAZA MARIA EUGENIA', carnetAsegurado: '970625MCA', tipo: 'VACUNA', detalle: 'Vacuna antigripal (influenza)', fecha: HOY, hora: '09:00', estado: 'REALIZADO', enfermera: 'Aux. Ana Condori Q.' },
+    { id: 5, pacienteNombre: 'ROJAS PEREZ CARLOS (walk-in)', tipo: 'INYECTABLE', detalle: 'Diclofenaco 75mg IM', fecha: HOY, hora: '', estado: 'PENDIENTE' }
+];
+
+// ─────────────────────────────────────────────────────────────────────────────
+// BALANCE HÍDRICO (ejemplos)
+// ─────────────────────────────────────────────────────────────────────────────
+export const SEED_BALANCES: BalanceHidrico[] = [
+    {
+        id: 1, pacienteId: 5, carnetAsegurado: '920304CRV', carnetBeneficiario: '610508MRV', servicio: 'CIRUGIA', cama: 'C-102', peso: 60,
+        registros: [
+            { id: 1, fecha: '2026-06-21', turno: 'MANANA', ingViaOral: 0, ingParenteral: 500, egrOrina: 300, egrDrenajes: 50, observacion: 'Post-operada, NPO', enfermeraNombre: 'Lic. Mamani Flores Patricia' },
+            { id: 2, fecha: '2026-06-21', turno: 'TARDE', ingViaOral: 150, ingParenteral: 500, egrOrina: 400, egrDrenajes: 30, enfermeraNombre: 'Lic. Vargas Rojas Elena' }
+        ]
+    },
+    {
+        id: 2, pacienteId: 4, carnetAsegurado: '651122PCM', servicio: 'MEDICINA INTERNA', cama: 'C-202', peso: 82,
+        registros: [
+            { id: 1, fecha: HOY, turno: 'MANANA', ingViaOral: 400, ingParenteral: 1000, egrOrina: 900, observacion: 'Diuresis conservada', enfermeraNombre: 'Aux. Rosa Mamani C.' }
+        ]
+    }
+];
+
+// ─────────────────────────────────────────────────────────────────────────────
+// DISPOSITIVOS (sondas, vías y catéteres)
+// ─────────────────────────────────────────────────────────────────────────────
+export const SEED_DISPOSITIVOS: ControlDispositivos[] = [
+    {
+        id: 1, pacienteId: 5, carnetAsegurado: '920304CRV', servicio: 'CIRUGIA', cama: 'C-102',
+        dispositivos: [
+            { id: 1, tipo: 'VIA_PERIFERICA', sitio: 'MSD antebrazo', fechaColocacion: '2026-06-21', estado: 'ACTIVO', proximoCambio: '2026-06-24', enfermeraNombre: 'Lic. Mamani Flores Patricia' },
+            { id: 2, tipo: 'SONDA_VESICAL', sitio: 'Foley N.° 16', fechaColocacion: '2026-06-21', estado: 'ACTIVO', observacion: 'Diuresis clara', enfermeraNombre: 'Lic. Mamani Flores Patricia' },
+            { id: 3, tipo: 'DRENAJE', sitio: 'Subhepático', fechaColocacion: '2026-06-21', estado: 'ACTIVO', observacion: 'Débito seroso escaso', enfermeraNombre: 'Lic. Vargas Rojas Elena' }
+        ]
+    },
+    {
+        id: 2, pacienteId: 2, carnetAsegurado: '420512JCR', servicio: 'MEDICINA INTERNA', cama: 'C-201',
+        dispositivos: [
+            { id: 1, tipo: 'VIA_PERIFERICA', sitio: 'MSI dorso de mano', fechaColocacion: '2026-06-18', estado: 'ACTIVO', proximoCambio: '2026-06-21', enfermeraNombre: 'Lic. Silva Quispe Jacquelin' },
+            { id: 2, tipo: 'OXIGENO', sitio: 'Cánula nasal', fechaColocacion: '2026-06-18', fechaRetiro: '2026-06-20', estado: 'RETIRADO', observacion: 'Retirado, satura 95% al ambiente' }
+        ]
+    }
+];
+
+// ─────────────────────────────────────────────────────────────────────────────
+// CURACIONES / HERIDAS
+// ─────────────────────────────────────────────────────────────────────────────
+export const SEED_CURACIONES: RegistroCuraciones[] = [
+    {
+        id: 1, pacienteId: 5, carnetAsegurado: '920304CRV', servicio: 'CIRUGIA', cama: 'C-102',
+        heridas: [
+            {
+                id: 1, localizacion: 'Abdomen — puertos laparoscópicos', tipo: 'QUIRURGICA', braden: 20,
+                curaciones: [
+                    { id: 1, fecha: '2026-06-21', hora: '16:00', aspecto: 'Herida limpia y seca, sin signos de infección.', accion: 'Limpieza con SF, gasa estéril y apósito seco.', enfermeraNombre: 'Lic. Vargas Rojas Elena' }
+                ]
+            }
+        ]
+    },
+    {
+        id: 2, pacienteId: 8, carnetAsegurado: '810919JSM', servicio: 'TRAUMATOLOGIA', cama: 'C-111',
+        heridas: [
+            {
+                id: 1, localizacion: 'Muslo derecho — sitio quirúrgico', tipo: 'QUIRURGICA', braden: 16,
+                curaciones: [
+                    { id: 1, fecha: '2026-06-16', hora: '10:00', aspecto: 'Bordes afrontados, leve eritema perilesional.', accion: 'Curación con clorhexidina, apósito estéril.', enfermeraNombre: 'Lic. Mamani Flores Patricia' }
+                ]
+            }
+        ]
+    }
+];
+
+// ─────────────────────────────────────────────────────────────────────────────
+// CONTROL GLUCÉMICO (glucometría)
+// ─────────────────────────────────────────────────────────────────────────────
+export const SEED_GLUCEMIAS: ControlGlucemia[] = [
+    {
+        id: 1, pacienteId: 4, carnetAsegurado: '651122PCM', servicio: 'MEDICINA INTERNA', cama: 'C-202',
+        mediciones: [
+            { id: 1, fecha: '2026-06-17', hora: '16:30', valor: 412, momento: 'OTRO', insulinaTipo: 'CRISTALINA', insulinaUI: 10, observacion: 'Ingreso — descompensación', enfermeraNombre: 'Lic. Silva Quispe Jacquelin' },
+            { id: 2, fecha: '2026-06-18', hora: '06:00', valor: 210, momento: 'AYUNAS', insulinaTipo: 'CRISTALINA', insulinaUI: 6, enfermeraNombre: 'Aux. Rosa Mamani C.' },
+            { id: 3, fecha: '2026-06-18', hora: '12:00', valor: 180, momento: 'PRE_ALMUERZO', insulinaTipo: 'CRISTALINA', insulinaUI: 4, enfermeraNombre: 'Aux. Rosa Mamani C.' },
+            { id: 4, fecha: HOY, hora: '06:00', valor: 156, momento: 'AYUNAS', insulinaTipo: 'NPH', insulinaUI: 10, enfermeraNombre: 'Aux. Rosa Mamani C.' }
+        ]
+    }
+];
+
+// ─────────────────────────────────────────────────────────────────────────────
+// EMERGENCIAS — Área de urgencias con triage Manchester
+// ─────────────────────────────────────────────────────────────────────────────
+export const SEED_EMERGENCIAS: PacienteEmergencia[] = [
+    { id: 1, pacienteNombre: 'MAMANI CHOQUE VICTOR (walk-in)', edad: 58, sexo: 'M', motivo: 'Politraumatismo por accidente de tránsito.', nivelTriage: 'ROJO', estado: 'EN_ATENCION', fecha: HOY, horaLlegada: '07:05', enfermera: 'Lic. Jacquelin Silva Quispe', signos: { paSistolica: 90, paDiastolica: 60, fc: 118, fr: 26, saturacion: 90, glasgow: 13, dolor: 9 }, observaciones: 'Se canaliza doble vía, O2 por máscara.' },
+    { id: 2, pacienteId: 8, carnetAsegurado: '810919JSM', pacienteNombre: 'SALAZAR MENDOZA JORGE', edad: 44, sexo: 'M', motivo: 'Dolor torácico opresivo irradiado a brazo izquierdo.', nivelTriage: 'NARANJA', estado: 'EN_ATENCION', fecha: HOY, horaLlegada: '07:40', enfermera: 'Lic. Vargas Rojas Elena', signos: { paSistolica: 150, paDiastolica: 95, fc: 96, fr: 20, saturacion: 95, dolor: 7 }, observaciones: 'ECG solicitado, monitorización continua.' },
+    { id: 3, pacienteNombre: 'FLORES APAZA LUCIA (walk-in)', edad: 34, sexo: 'F', motivo: 'Fractura cerrada de antebrazo por caída.', nivelTriage: 'AMARILLO', estado: 'EN_TRIAGE', fecha: HOY, horaLlegada: '08:10', signos: { fc: 88, fr: 18, dolor: 6 } },
+    { id: 4, pacienteNombre: 'CHOQUE MAMANI PEDRO (walk-in)', edad: 60, sexo: 'M', motivo: 'Descompensación diabética, hiperglucemia.', nivelTriage: 'AMARILLO', estado: 'OBSERVACION', fecha: HOY, horaLlegada: '06:30', enfermera: 'Aux. Rosa Mamani C.', signos: { paSistolica: 145, paDiastolica: 88, fc: 92, glucemia: 320 }, observaciones: 'En observación, control glucémico c/2h.' },
+    { id: 5, pacienteNombre: 'QUISPE ROJAS ANA (walk-in)', edad: 27, sexo: 'F', motivo: 'Herida cortante superficial en mano.', nivelTriage: 'VERDE', estado: 'EN_TRIAGE', fecha: HOY, horaLlegada: '08:25', signos: { dolor: 3 } },
+    { id: 6, pacienteNombre: 'TICONA APAZA MARCO (walk-in)', edad: 29, sexo: 'M', motivo: 'Faringitis, solicita certificado.', nivelTriage: 'AZUL', estado: 'EN_TRIAGE', fecha: HOY, horaLlegada: '08:35' },
+    { id: 7, pacienteNombre: 'VARGAS LEON ELENA (walk-in)', edad: 60, sexo: 'F', motivo: 'Crisis hipertensiva.', nivelTriage: 'NARANJA', estado: 'INTERNACION', fecha: HOY, horaLlegada: '05:50', enfermera: 'Lic. Pedro Gutiérrez Lima', signos: { paSistolica: 190, paDiastolica: 110, fc: 88, saturacion: 96 }, destino: 'MEDICINA INTERNA — Piso 2', observaciones: 'Estabilizada, se interna para control.' }
 ];

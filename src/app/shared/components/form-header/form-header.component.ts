@@ -1,5 +1,6 @@
-import { Component, input } from '@angular/core';
+import { Component, input, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { RolEnf, etiquetaRol } from '@/app/core/models/responsable-enfermeria';
 
 /**
  * app-form-header — Encabezado firma del módulo.
@@ -30,6 +31,11 @@ import { CommonModule } from '@angular/common';
             </div>
 
             <div class="fh__right">
+                @if (responsable()) {
+                    <span class="fh__rol" [attr.data-rol]="responsable()" [title]="'Responsable: ' + rolLabel()">
+                        <i class="pi pi-user-plus"></i> {{ rolLabel() }}
+                    </span>
+                }
                 @if (code()) { <span class="fh__code">{{ code() }}</span> }
                 <div class="fh__actions"><ng-content></ng-content></div>
             </div>
@@ -82,6 +88,19 @@ import { CommonModule } from '@angular/common';
         :host-context(.app-dark) .fh__code {
             color: var(--p-primary-200); background: var(--p-surface-800); border-color: var(--p-surface-600);
         }
+        .fh__rol {
+            display: inline-flex; align-items: center; gap: 0.3rem; white-space: nowrap;
+            font-size: 0.7rem; font-weight: 700; padding: 0.28rem 0.6rem; border-radius: 9999px;
+            background: var(--p-surface-100); color: var(--p-text-muted-color); border: 1px solid var(--p-surface-200);
+        }
+        .fh__rol .pi { font-size: 0.66rem; }
+        .fh__rol[data-rol="AUX"] { background: #e0f2fe; color: #0369a1; border-color: #bae6fd; }
+        .fh__rol[data-rol="LIC"] { background: var(--p-primary-50); color: var(--p-primary-700); border-color: var(--p-primary-200); }
+        .fh__rol[data-rol="AMBAS"] { background: #f3e8ff; color: #7c3aed; border-color: #e9d5ff; }
+        :host-context(.app-dark) .fh__rol { background: var(--p-surface-800); border-color: var(--p-surface-600); }
+        :host-context(.app-dark) .fh__rol[data-rol="AUX"] { color: #7dd3fc; }
+        :host-context(.app-dark) .fh__rol[data-rol="LIC"] { color: var(--p-primary-200); }
+        :host-context(.app-dark) .fh__rol[data-rol="AMBAS"] { color: #c4b5fd; }
         .fh__actions { display: flex; align-items: center; gap: 0.5rem; }
         .fh__ecg {
             position: absolute; left: 0; right: 0; bottom: 0; width: 100%; height: 16px;
@@ -99,4 +118,11 @@ export class FormHeaderComponent {
     code = input<string>('');
     subtitle = input<string>('');
     eyebrow = input<string>('COSSMIL · Hospital Militar Central');
+    /** Responsable de la hoja (Aux / Lic / Ambas). Si se define, muestra un chip. */
+    responsable = input<RolEnf | ''>('');
+
+    rolLabel = computed(() => {
+        const r = this.responsable();
+        return r ? etiquetaRol(r) : '';
+    });
 }

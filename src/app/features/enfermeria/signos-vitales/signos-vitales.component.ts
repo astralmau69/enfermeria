@@ -1,7 +1,7 @@
 import { Component, inject, signal, computed, effect } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { map } from 'rxjs/operators';
-import { CommonModule } from '@angular/common';
+import { CommonModule, DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { PacienteActivoService } from '@/app/core/services/paciente-activo.service';
@@ -11,6 +11,7 @@ import { InputNumberModule } from 'primeng/inputnumber';
 import { CheckboxModule } from 'primeng/checkbox';
 import { ToastModule } from 'primeng/toast';
 import { ChartModule } from 'primeng/chart';
+import { SelectButtonModule } from 'primeng/selectbutton';
 import { MessageService } from 'primeng/api';
 import { PacienteService } from '@/app/core/services/paciente.service';
 import { EnfermeriaService } from '@/app/core/services/enfermeria.service';
@@ -18,11 +19,20 @@ import { Paciente } from '@/app/core/models/paciente.model';
 import { CuadroSignosVitales, DiaSignosVitales, TurnoSignos } from '@/app/core/models/enfermeria.model';
 import { FormHeaderComponent } from '@/app/shared/components/form-header/form-header.component';
 
+type TurnoKey = 'manana' | 'tarde' | 'noche';
+
+interface StatusBadge {
+    label: string;
+    color: string;
+    bg: string;
+}
+
 @Component({
     selector: 'app-signos-vitales',
     standalone: true,
     imports: [
         CommonModule,
+        DatePipe,
         FormsModule,
         ButtonModule,
         InputTextModule,
@@ -30,9 +40,10 @@ import { FormHeaderComponent } from '@/app/shared/components/form-header/form-he
         CheckboxModule,
         ToastModule,
         ChartModule,
+        SelectButtonModule,
         FormHeaderComponent,
     ],
-    providers: [MessageService],
+    providers: [MessageService, DatePipe],
     template: `
     <p-toast />
 
@@ -42,7 +53,234 @@ import { FormHeaderComponent } from '@/app/shared/components/form-header/form-he
         subtitle="Registro gráfico de respiración, pulso y temperatura por turno" />
 
     @if (cuadro(); as c) {
-    <div class="overflow-x-auto p-4 doc-sheet bg-surface-0 dark:bg-surface-900">
+
+    <!-- ==================== REGISTRO RÁPIDO DEL TURNO ==================== -->
+    <div class="mb-4 rounded-xl overflow-hidden shadow-md" style="border: 1px solid var(--p-primary-600, #0d9488);">
+
+        <!-- Panel header: teal gradient -->
+        <div style="background: linear-gradient(135deg, #0d9488 0%, #0f766e 60%, #115e59 100%); padding: 10px 16px; display: flex; align-items: center; justify-content: space-between;">
+            <div style="display:flex; align-items:center; gap: 10px;">
+                <span style="color:#fff; font-size:1rem; font-weight:700; font-family: var(--font-display, inherit); letter-spacing:.03em;">
+                    Registro Rápido
+                </span>
+                <span style="color:#99f6e4; font-size:.8rem; font-weight:400;">
+                    · {{ fechaHoy() | date:'dd/MM/yyyy' }}
+                </span>
+            </div>
+            <!-- Patient info bar -->
+            <div style="color:#ccfbf1; font-size:.8rem; font-weight:500; text-align:right;">
+                @if (paciente(); as p) {
+                    <span style="font-weight:700; color:#fff;">{{ p.apellidoPaterno }}</span>
+                    @if (p.apellidoMaterno) { <span style="color:#99f6e4;">&nbsp;{{ p.apellidoMaterno }}</span> }
+                    <span style="color:#ccfbf1;">,&nbsp;{{ p.nombres }}</span>
+                }
+            </div>
+        </div>
+
+        <!-- Panel body -->
+        <div style="background: var(--p-surface-0, #fff); padding: 16px;">
+
+            <!-- Turno selector -->
+            <div style="display:flex; align-items:center; gap:12px; margin-bottom:16px;">
+                <span style="font-size:.8rem; font-weight:600; color:#374151; white-space:nowrap;">Turno actual:</span>
+                <p-selectButton
+                    [options]="turnoOpciones"
+                    [(ngModel)]="turnoActual"
+                    optionLabel="label"
+                    optionValue="value"
+                    [allowEmpty]="false"
+                />
+                <span style="font-size:.75rem; color:#6b7280; margin-left:auto;">
+                    @if (!diaHoy()) {
+                        <span style="color:#d97706;">
+                            <i class="pi pi-exclamation-triangle" style="margin-right:4px;"></i>
+                            No hay entrada para hoy.
+                        </span>
+                    } @else {
+                        <span style="color:#059669;">
+                            <i class="pi pi-check-circle" style="margin-right:4px;"></i>
+                            Día {{ fechaHoy() | date:'dd/MM' }} cargado
+                        </span>
+                    }
+                </span>
+                @if (!diaHoy()) {
+                <p-button
+                    label="Crear entrada de hoy"
+                    icon="pi pi-plus"
+                    severity="contrast"
+                    size="small"
+                    (onClick)="ensureDiaHoy()"
+                />
+                }
+            </div>
+
+            <!-- Vital sign cards (3 cards in responsive grid) -->
+            <div style="display:grid; grid-template-columns: repeat(3,1fr); gap:12px; margin-bottom:14px;">
+
+                <!-- Respiración card -->
+                <div style="background: var(--p-surface-0, #fff); border: 1px solid #e5e7eb; border-radius: 10px; padding: 12px 14px;">
+                    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:6px;">
+                        <span style="font-size:.78rem; font-weight:700; color:#374151; font-family:var(--font-display,inherit);">
+                            <i class="pi pi-wave-pulse" style="margin-right:5px; color:#0d9488;"></i>
+                            Respiración
+                        </span>
+                        @if (diaHoy(); as dia) {
+                            @if (statusResp(dia.turnos[turnoActual()].respiracion); as st) {
+                                <span [style.background]="st.bg" [style.color]="st.color"
+                                    style="font-size:.68rem; font-weight:700; padding:2px 8px; border-radius:999px;">
+                                    {{ st.label }}
+                                </span>
+                            }
+                        }
+                    </div>
+                    <div style="display:flex; align-items:center; gap:8px;">
+                        <p-inputNumber
+                            [ngModel]="diaHoy()?.turnos?.[turnoActual()]?.respiracion"
+                            (ngModelChange)="setVital('respiracion', $event)"
+                            [showButtons]="true"
+                            [min]="0" [max]="80"
+                            [disabled]="!diaHoy()"
+                            inputStyleClass="text-center font-mono text-lg"
+                            styleClass="w-full"
+                            [inputStyle]="{'font-family': 'var(--font-mono, monospace)', 'font-size':'1.2rem', 'text-align':'center'}"
+                        />
+                    </div>
+                    <div style="font-size:.68rem; color:#9ca3af; margin-top:5px; text-align:center;">
+                        12–20 rpm · <span style="color:#0d9488;">Normal 12-20</span>
+                    </div>
+                </div>
+
+                <!-- Pulso card -->
+                <div style="background: var(--p-surface-0, #fff); border: 1px solid #e5e7eb; border-radius: 10px; padding: 12px 14px;">
+                    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:6px;">
+                        <span style="font-size:.78rem; font-weight:700; color:#374151; font-family:var(--font-display,inherit);">
+                            <i class="pi pi-heart" style="margin-right:5px; color:#ef4444;"></i>
+                            Pulso
+                        </span>
+                        @if (diaHoy(); as dia) {
+                            @if (statusPulso(dia.turnos[turnoActual()].pulso); as st) {
+                                <span [style.background]="st.bg" [style.color]="st.color"
+                                    style="font-size:.68rem; font-weight:700; padding:2px 8px; border-radius:999px;">
+                                    {{ st.label }}
+                                </span>
+                            }
+                        }
+                    </div>
+                    <div style="display:flex; align-items:center; gap:8px;">
+                        <p-inputNumber
+                            [ngModel]="diaHoy()?.turnos?.[turnoActual()]?.pulso"
+                            (ngModelChange)="setVital('pulso', $event)"
+                            [showButtons]="true"
+                            [min]="0" [max]="250"
+                            [disabled]="!diaHoy()"
+                            styleClass="w-full"
+                            [inputStyle]="{'font-family': 'var(--font-mono, monospace)', 'font-size':'1.2rem', 'text-align':'center'}"
+                        />
+                    </div>
+                    <div style="font-size:.68rem; color:#9ca3af; margin-top:5px; text-align:center;">
+                        60–100 lpm · <span style="color:#0d9488;">Normal 60-100</span>
+                    </div>
+                </div>
+
+                <!-- Temperatura card -->
+                <div style="background: var(--p-surface-0, #fff); border: 1px solid #e5e7eb; border-radius: 10px; padding: 12px 14px;">
+                    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:6px;">
+                        <span style="font-size:.78rem; font-weight:700; color:#374151; font-family:var(--font-display,inherit);">
+                            <i class="pi pi-sun" style="margin-right:5px; color:#f59e0b;"></i>
+                            Temperatura
+                        </span>
+                        @if (diaHoy(); as dia) {
+                            @if (statusTemp(dia.turnos[turnoActual()].temperatura); as st) {
+                                <span [style.background]="st.bg" [style.color]="st.color"
+                                    style="font-size:.68rem; font-weight:700; padding:2px 8px; border-radius:999px;">
+                                    {{ st.label }}
+                                </span>
+                            }
+                        }
+                    </div>
+                    <div style="display:flex; align-items:center; gap:8px;">
+                        <p-inputNumber
+                            [ngModel]="diaHoy()?.turnos?.[turnoActual()]?.temperatura"
+                            (ngModelChange)="setVital('temperatura', $event)"
+                            [showButtons]="true"
+                            [min]="30" [max]="45"
+                            [minFractionDigits]="1" [maxFractionDigits]="1"
+                            [disabled]="!diaHoy()"
+                            styleClass="w-full"
+                            [inputStyle]="{'font-family': 'var(--font-mono, monospace)', 'font-size':'1.2rem', 'text-align':'center'}"
+                        />
+                    </div>
+                    <div style="font-size:.68rem; color:#9ca3af; margin-top:5px; text-align:center;">
+                        36–37.5 °C · <span style="color:#0d9488;">Normal 36-37.5</span>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Per-day fields: Presión Arterial + Peso -->
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:14px;">
+
+                <!-- Presión Arterial -->
+                <div style="background:var(--p-surface-200, #f3f4f6); border-radius:8px; padding:10px 12px; display:flex; align-items:center; gap:10px;">
+                    <label style="font-size:.78rem; font-weight:600; color:#374151; white-space:nowrap; min-width:110px;">
+                        <i class="pi pi-chart-line" style="margin-right:4px; color:#6366f1;"></i>
+                        Presión Arterial
+                    </label>
+                    <input pInputText type="text"
+                        [ngModel]="diaHoy()?.presionArterial"
+                        (ngModelChange)="setDayField('presionArterial', $event)"
+                        [disabled]="!diaHoy()"
+                        placeholder="Ej: 120/80"
+                        style="flex:1; font-family:var(--font-mono,monospace); font-size:.9rem;"
+                        class="p-inputtext-sm"
+                    />
+                </div>
+
+                <!-- Peso -->
+                <div style="background:var(--p-surface-200, #f3f4f6); border-radius:8px; padding:10px 12px; display:flex; align-items:center; gap:10px;">
+                    <label style="font-size:.78rem; font-weight:600; color:#374151; white-space:nowrap; min-width:50px;">
+                        <i class="pi pi-calculator" style="margin-right:4px; color:#6366f1;"></i>
+                        Peso
+                    </label>
+                    <p-inputNumber
+                        [ngModel]="diaHoy()?.peso"
+                        (ngModelChange)="setDayField('peso', $event)"
+                        [showButtons]="false"
+                        [minFractionDigits]="1" [maxFractionDigits]="1"
+                        [disabled]="!diaHoy()"
+                        placeholder="kg"
+                        styleClass="flex-1"
+                        [inputStyle]="{'font-family':'var(--font-mono,monospace)', 'font-size':'.9rem'}"
+                        inputStyleClass="p-inputtext-sm"
+                    />
+                    <span style="font-size:.75rem; color:#9ca3af;">kg</span>
+                </div>
+
+            </div>
+
+            <!-- Footer action -->
+            <div style="display:flex; justify-content:flex-end; gap:8px;">
+                <p-button
+                    label="Completar en el cuadro"
+                    icon="pi pi-arrow-down"
+                    severity="secondary"
+                    size="small"
+                    (onClick)="scrollToCuadro()"
+                />
+                <p-button
+                    label="Guardar"
+                    icon="pi pi-save"
+                    severity="success"
+                    size="small"
+                    (onClick)="guardar()"
+                />
+            </div>
+
+        </div>
+    </div>
+    <!-- ==================== END REGISTRO RÁPIDO ==================== -->
+
+    <div class="overflow-x-auto p-4 doc-sheet bg-surface-0 dark:bg-surface-900" id="cuadro-grid">
         <!-- ==================== FORM HEADER ==================== -->
         <div class="border-2 border-blue-800 mb-0" style="min-width: 900px;">
             <!-- Top bar: Title + Form code -->
@@ -437,7 +675,23 @@ export class SignosVitalesComponent {
     paciente = signal<Paciente | null>(null);
     cuadro = signal<CuadroSignosVitales | null>(null);
 
-    /** Scale values displayed on the left side of the grid (top to bottom = high to low) */
+    turnoActual = signal<TurnoKey>(this.detectTurno());
+
+    readonly turnoOpciones: { label: string; value: TurnoKey }[] = [
+        { label: 'Mañana', value: 'manana' },
+        { label: 'Tarde',  value: 'tarde'  },
+        { label: 'Noche',  value: 'noche'  },
+    ];
+
+    fechaHoy = signal<string>(new Date().toISOString().split('T')[0]);
+
+    diaHoy = computed<DiaSignosVitales | null>(() => {
+        const c = this.cuadro();
+        if (!c) return null;
+        const hoy = this.fechaHoy();
+        return c.dias.find(d => d.fecha === hoy) ?? null;
+    });
+
     readonly respiracionScale = [70, 60, 50, 40, 30, 20, 18];
     readonly pulsoScale = [160, 140, 120, 100, 80, 60, 40];
     readonly temperaturaScale = [41, 40, 39, 38, 37, 36, 35];
@@ -461,31 +715,22 @@ export class SignosVitalesComponent {
     chartOptions: any = {
         responsive: true,
         maintainAspectRatio: false,
-        interaction: {
-            mode: 'index' as const,
-            intersect: false,
-        },
+        interaction: { mode: 'index' as const, intersect: false },
         plugins: {
             legend: { display: true, position: 'top' as const },
             tooltip: { enabled: true },
         },
         scales: {
-            x: {
-                title: { display: true, text: 'Dia / Turno' },
-            },
+            x: { title: { display: true, text: 'Dia / Turno' } },
             yPulso: {
-                type: 'linear' as const,
-                position: 'left' as const,
-                min: 40,
-                max: 160,
+                type: 'linear' as const, position: 'left' as const,
+                min: 40, max: 160,
                 title: { display: true, text: 'Pulso (lpm)' },
                 grid: { drawOnChartArea: true },
             },
             yTemp: {
-                type: 'linear' as const,
-                position: 'right' as const,
-                min: 35,
-                max: 41,
+                type: 'linear' as const, position: 'right' as const,
+                min: 35, max: 41,
                 title: { display: true, text: 'Temperatura (°C)' },
                 grid: { drawOnChartArea: false },
             },
@@ -504,7 +749,76 @@ export class SignosVitalesComponent {
         });
     }
 
-    // ── Header helpers ──
+    private detectTurno(): TurnoKey {
+        const h = new Date().getHours();
+        if (h >= 7 && h < 14) return 'manana';
+        if (h >= 14 && h < 21) return 'tarde';
+        return 'noche';
+    }
+
+    ensureDiaHoy(): void {
+        const c = this.cuadro();
+        if (!c) return;
+        const hoy = this.fechaHoy();
+        if (c.dias.some(d => d.fecha === hoy)) return;
+
+        const nuevoDia: DiaSignosVitales = {
+            fecha: hoy,
+            turnos: { manana: {}, tarde: {}, noche: {} },
+        };
+        this.cuadro.set({ ...c, dias: [...c.dias, nuevoDia] });
+        this.messageService.add({
+            severity: 'info',
+            summary: 'Día creado',
+            detail: `Se creó la entrada para hoy (${this.formatDate(hoy)})`,
+        });
+    }
+
+    setVital(field: keyof TurnoSignos, value: number | null): void {
+        const c = this.cuadro();
+        if (!c) return;
+        const hoy = this.fechaHoy();
+        const turno = this.turnoActual();
+        const dias = c.dias.map(d => {
+            if (d.fecha !== hoy) return d;
+            return { ...d, turnos: { ...d.turnos, [turno]: { ...d.turnos[turno], [field]: value ?? undefined } } };
+        });
+        this.cuadro.set({ ...c, dias });
+    }
+
+    setDayField(field: string, value: any): void {
+        const c = this.cuadro();
+        if (!c) return;
+        const hoy = this.fechaHoy();
+        const dias = c.dias.map(d => d.fecha === hoy ? { ...d, [field]: value ?? undefined } : d);
+        this.cuadro.set({ ...c, dias });
+    }
+
+    statusResp(v: number | undefined): StatusBadge | null {
+        if (v == null) return null;
+        if (v < 12)  return { label: 'Bradipnea',  color: '#1d4ed8', bg: '#dbeafe' };
+        if (v <= 20) return { label: 'Normal',      color: '#0f766e', bg: '#ccfbf1' };
+        return              { label: 'Taquipnea',   color: '#b91c1c', bg: '#fee2e2' };
+    }
+
+    statusPulso(v: number | undefined): StatusBadge | null {
+        if (v == null) return null;
+        if (v < 60)   return { label: 'Bradicardia',  color: '#1d4ed8', bg: '#dbeafe' };
+        if (v <= 100) return { label: 'Normal',        color: '#0f766e', bg: '#ccfbf1' };
+        return               { label: 'Taquicardia',   color: '#b91c1c', bg: '#fee2e2' };
+    }
+
+    statusTemp(v: number | undefined): StatusBadge | null {
+        if (v == null) return null;
+        if (v < 36)    return { label: 'Hipotermia', color: '#1d4ed8', bg: '#dbeafe' };
+        if (v <= 37.5) return { label: 'Normal',     color: '#0f766e', bg: '#ccfbf1' };
+        if (v <= 38)   return { label: 'Febrícula',  color: '#92400e', bg: '#fef3c7' };
+        return                { label: 'Fiebre',     color: '#b91c1c', bg: '#fee2e2' };
+    }
+
+    scrollToCuadro(): void {
+        document.getElementById('cuadro-grid')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
 
     getIngresoPart(fecha: string, part: 'day' | 'month' | 'year'): string {
         if (!fecha) return '';
@@ -524,9 +838,6 @@ export class SignosVitalesComponent {
         cuadro.fechaIngreso = parts.join('-');
     }
 
-    // ── Scale matching ──
-
-    /** Returns true if the value falls into the bucket closest to `scaleVal` in the given scale. */
     matchesScale(value: number | undefined, scaleVal: number, scale: number[]): boolean {
         if (value == null) return false;
         return this.closestScale(value, scale) === scaleVal;
@@ -534,8 +845,7 @@ export class SignosVitalesComponent {
 
     matchesScaleTemp(value: number | undefined, scaleVal: number, scale: number[]): boolean {
         if (value == null) return false;
-        const rounded = Math.round(value);
-        return this.closestScale(rounded, scale) === scaleVal;
+        return this.closestScale(Math.round(value), scale) === scaleVal;
     }
 
     private closestScale(value: number, scale: number[]): number {
@@ -543,77 +853,44 @@ export class SignosVitalesComponent {
         let minDiff = Math.abs(value - closest);
         for (const s of scale) {
             const diff = Math.abs(value - s);
-            if (diff < minDiff) {
-                minDiff = diff;
-                closest = s;
-            }
+            if (diff < minDiff) { minDiff = diff; closest = s; }
         }
         return closest;
     }
 
-    // ── Abnormal value checks ──
-
     isPulsoAnormal(pulso: number | undefined): boolean {
-        if (pulso == null) return false;
-        return pulso > 100 || pulso < 50;
+        return pulso != null && (pulso > 100 || pulso < 50);
     }
 
     isTemperaturaAnormal(temp: number | undefined): boolean {
-        if (temp == null) return false;
-        return temp > 38;
+        return temp != null && temp > 38;
     }
-
-    // ── Actions ──
 
     agregarDia(): void {
         const c = this.cuadro();
         if (!c) return;
-
         const hoy = new Date();
         if (c.dias.length > 0) {
-            const ultimaFecha = new Date(c.dias[c.dias.length - 1].fecha);
-            hoy.setTime(ultimaFecha.getTime() + 86400000);
+            const ultima = new Date(c.dias[c.dias.length - 1].fecha);
+            hoy.setTime(ultima.getTime() + 86400000);
         }
-
         const nuevoDia: DiaSignosVitales = {
             fecha: hoy.toISOString().split('T')[0],
-            turnos: {
-                manana: {},
-                tarde: {},
-                noche: {},
-            },
+            turnos: { manana: {}, tarde: {}, noche: {} },
         };
-
-        this.cuadro.set({
-            ...c,
-            dias: [...c.dias, nuevoDia],
-        });
-
-        this.messageService.add({
-            severity: 'info',
-            summary: 'Dia agregado',
-            detail: `Se agrego el dia ${this.formatDate(nuevoDia.fecha)}`,
-        });
+        this.cuadro.set({ ...c, dias: [...c.dias, nuevoDia] });
+        this.messageService.add({ severity: 'info', summary: 'Dia agregado', detail: `Se agrego el dia ${this.formatDate(nuevoDia.fecha)}` });
     }
 
     guardar(): void {
         const c = this.cuadro();
         if (!c) return;
-
         this.enfermeriaService.saveSignosVitales(c).subscribe({
             next: (saved) => {
                 this.cuadro.set(saved);
-                this.messageService.add({
-                    severity: 'success',
-                    summary: 'Guardado',
-                    detail: 'Signos vitales guardados correctamente',
-                });
+                this.messageService.add({ severity: 'success', summary: 'Guardado', detail: 'Signos vitales guardados correctamente' });
             },
-            error: () => this.messageService.add({
-                severity: 'error',
-                summary: 'Error',
-                detail: 'No se pudieron guardar los signos vitales',
-            }),
+            error: () => this.messageService.add({ severity: 'error', summary: 'Error', detail: 'No se pudieron guardar los signos vitales' }),
         });
     }
 
@@ -624,16 +901,10 @@ export class SignosVitalesComponent {
         return fecha;
     }
 
-    // ── Private ──
-
     private loadPaciente(id: number): void {
         this.pacienteService.getById(id).subscribe({
             next: (p) => this.paciente.set(p),
-            error: () => this.messageService.add({
-                severity: 'error',
-                summary: 'Error',
-                detail: 'No se pudo cargar los datos del paciente',
-            }),
+            error: () => this.messageService.add({ severity: 'error', summary: 'Error', detail: 'No se pudo cargar los datos del paciente' }),
         });
     }
 
@@ -641,11 +912,7 @@ export class SignosVitalesComponent {
         this.enfermeriaService.getSignosVitalesByPaciente(id).subscribe({
             next: (data) => this.cuadro.set(data),
             error: () => {
-                this.messageService.add({
-                    severity: 'warn',
-                    summary: 'Sin datos',
-                    detail: 'No se encontraron signos vitales. Se creo un cuadro vacio.',
-                });
+                this.messageService.add({ severity: 'warn', summary: 'Sin datos', detail: 'No se encontraron signos vitales. Se creo un cuadro vacio.' });
                 this.cuadro.set(this.crearCuadroVacio(id));
             },
         });
@@ -656,13 +923,8 @@ export class SignosVitalesComponent {
             pacienteId,
             carnetAsegurado: this.paciente()?.carnetAsegurado ?? '',
             carnetBeneficiario: this.paciente()?.carnetBeneficiario,
-            vServicios: this.paciente()?.vServicios ?? {
-                pt1: false, pt2: false, pip: false, pipa: false, papa: false, pic: false,
-            },
-            servicio: '',
-            sala: '',
-            cama: '',
-            numeroHCE: '',
+            vServicios: this.paciente()?.vServicios ?? { pt1: false, pt2: false, pip: false, pipa: false, papa: false, pic: false },
+            servicio: '', sala: '', cama: '', numeroHCE: '',
             fechaIngreso: new Date().toISOString().split('T')[0],
             dias: [],
         };
@@ -672,50 +934,21 @@ export class SignosVitalesComponent {
         const labels: string[] = [];
         const tempData: (number | null)[] = [];
         const pulsoData: (number | null)[] = [];
-
         for (let i = 0; i < dias.length; i++) {
             const dia = dias[i];
             const dayNum = i + 1;
-
-            const turnos: { key: keyof typeof dia.turnos; label: string }[] = [
-                { key: 'manana', label: 'M' },
-                { key: 'tarde', label: 'T' },
-                { key: 'noche', label: 'N' },
-            ];
-
-            for (const turno of turnos) {
-                labels.push(`${dayNum} ${turno.label}`);
-                const t = dia.turnos[turno.key];
+            for (const { key, label } of [{ key: 'manana', label: 'M' }, { key: 'tarde', label: 'T' }, { key: 'noche', label: 'N' }] as const) {
+                labels.push(`${dayNum} ${label}`);
+                const t = dia.turnos[key];
                 tempData.push(t.temperatura ?? null);
                 pulsoData.push(t.pulso ?? null);
             }
         }
-
         return {
             labels,
             datasets: [
-                {
-                    label: 'Pulso (lpm)',
-                    data: pulsoData,
-                    borderColor: '#3B82F6',
-                    backgroundColor: 'rgba(59, 130, 246, 0.1)',
-                    yAxisID: 'yPulso',
-                    tension: 0.3,
-                    pointRadius: 4,
-                    pointHoverRadius: 6,
-                    spanGaps: true,
-                },
-                {
-                    label: 'Temperatura (°C)',
-                    data: tempData,
-                    borderColor: '#EF4444',
-                    backgroundColor: 'rgba(239, 68, 68, 0.1)',
-                    yAxisID: 'yTemp',
-                    tension: 0.3,
-                    pointRadius: 4,
-                    pointHoverRadius: 6,
-                    spanGaps: true,
-                },
+                { label: 'Pulso (lpm)', data: pulsoData, borderColor: '#3B82F6', backgroundColor: 'rgba(59,130,246,.1)', yAxisID: 'yPulso', tension: 0.3, pointRadius: 4, pointHoverRadius: 6, spanGaps: true },
+                { label: 'Temperatura (°C)', data: tempData, borderColor: '#EF4444', backgroundColor: 'rgba(239,68,68,.1)', yAxisID: 'yTemp', tension: 0.3, pointRadius: 4, pointHoverRadius: 6, spanGaps: true },
             ],
         };
     }

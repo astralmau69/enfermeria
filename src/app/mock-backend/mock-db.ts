@@ -11,13 +11,20 @@ import { EvolucionTratamiento, ExamenComplementario } from '../core/models/evolu
 import { NotaDiariaEnfermeria, RegistroMedicamentos, CuadroSignosVitales } from '../core/models/enfermeria.model';
 import { ConsultaExterna } from '../core/models/consulta-externa.model';
 import { Cama } from '../core/models/piso.model';
+import { Interconsulta } from '../core/models/interconsulta.model';
+import { ProcedimientoAmbulatorio } from '../core/models/procedimiento-ambulatorio.model';
+import { BalanceHidrico, ControlDispositivos, RegistroCuraciones, ControlGlucemia } from '../core/models/cuidados-enfermeria.model';
+import { PacienteEmergencia } from '../core/models/emergencia.model';
 import {
     SEED_PACIENTES, SEED_ADMISIONES, SEED_EVOLUCIONES, SEED_EXAMENES,
     SEED_NOTAS, SEED_MEDICAMENTOS, SEED_SIGNOS_VITALES, SEED_ESTADISTICOS, SEED_CONSENTIMIENTOS,
-    SEED_CONSULTAS_EXTERNAS, SEED_CAMAS
+    SEED_CONSULTAS_EXTERNAS, SEED_CAMAS,
+    SEED_INTERCONSULTAS, SEED_PROC_AMBULATORIOS,
+    SEED_BALANCES, SEED_DISPOSITIVOS, SEED_CURACIONES, SEED_GLUCEMIAS,
+    SEED_EMERGENCIAS
 } from './seed';
 
-const STORAGE_KEY = 'cossmil_mock_db_v5';
+const STORAGE_KEY = 'cossmil_mock_db_v7';
 
 export interface MockDbShape {
     pacientes: Paciente[];
@@ -31,6 +38,13 @@ export interface MockDbShape {
     consentimientos: ConsentimientoInformado[];
     consultasExternas: ConsultaExterna[];
     camas: Cama[];
+    interconsultas: Interconsulta[];
+    procedimientosAmbulatorios: ProcedimientoAmbulatorio[];
+    balances: BalanceHidrico[];
+    dispositivos: ControlDispositivos[];
+    curaciones: RegistroCuraciones[];
+    glucemias: ControlGlucemia[];
+    emergencias: PacienteEmergencia[];
     seq: number;
 }
 
@@ -51,6 +65,13 @@ function buildSeed(): MockDbShape {
         consentimientos: clone(SEED_CONSENTIMIENTOS),
         consultasExternas: clone(SEED_CONSULTAS_EXTERNAS),
         camas: clone(SEED_CAMAS),
+        interconsultas: clone(SEED_INTERCONSULTAS),
+        procedimientosAmbulatorios: clone(SEED_PROC_AMBULATORIOS),
+        balances: clone(SEED_BALANCES),
+        dispositivos: clone(SEED_DISPOSITIVOS),
+        curaciones: clone(SEED_CURACIONES),
+        glucemias: clone(SEED_GLUCEMIAS),
+        emergencias: clone(SEED_EMERGENCIAS),
         seq: 1000
     };
 }
@@ -241,6 +262,59 @@ export function ensureConsentimiento(pacienteId: number): ConsentimientoInformad
         persist();
     }
     return doc;
+}
+
+export function ensureBalance(pacienteId: number): BalanceHidrico {
+    const db = getDb();
+    let doc = db.balances.find((b) => b.pacienteId === pacienteId);
+    if (!doc) {
+        const p = findPaciente(pacienteId);
+        doc = { id: nextId(), pacienteId, carnetAsegurado: p?.carnetAsegurado ?? '', carnetBeneficiario: p?.carnetBeneficiario, servicio: '', cama: camaDe(pacienteId), registros: [] };
+        db.balances.push(doc);
+        persist();
+    }
+    return doc;
+}
+
+export function ensureDispositivos(pacienteId: number): ControlDispositivos {
+    const db = getDb();
+    let doc = db.dispositivos.find((d) => d.pacienteId === pacienteId);
+    if (!doc) {
+        const p = findPaciente(pacienteId);
+        doc = { id: nextId(), pacienteId, carnetAsegurado: p?.carnetAsegurado ?? '', carnetBeneficiario: p?.carnetBeneficiario, servicio: '', cama: camaDe(pacienteId), dispositivos: [] };
+        db.dispositivos.push(doc);
+        persist();
+    }
+    return doc;
+}
+
+export function ensureCuraciones(pacienteId: number): RegistroCuraciones {
+    const db = getDb();
+    let doc = db.curaciones.find((c) => c.pacienteId === pacienteId);
+    if (!doc) {
+        const p = findPaciente(pacienteId);
+        doc = { id: nextId(), pacienteId, carnetAsegurado: p?.carnetAsegurado ?? '', carnetBeneficiario: p?.carnetBeneficiario, servicio: '', cama: camaDe(pacienteId), heridas: [] };
+        db.curaciones.push(doc);
+        persist();
+    }
+    return doc;
+}
+
+export function ensureGlucemia(pacienteId: number): ControlGlucemia {
+    const db = getDb();
+    let doc = db.glucemias.find((g) => g.pacienteId === pacienteId);
+    if (!doc) {
+        const p = findPaciente(pacienteId);
+        doc = { id: nextId(), pacienteId, carnetAsegurado: p?.carnetAsegurado ?? '', carnetBeneficiario: p?.carnetBeneficiario, servicio: '', cama: camaDe(pacienteId), mediciones: [] };
+        db.glucemias.push(doc);
+        persist();
+    }
+    return doc;
+}
+
+/** Código de cama actual del paciente (si está internado), o ''. */
+function camaDe(pacienteId: number): string {
+    return getDb().camas.find((c) => c.pacienteId === pacienteId)?.codigo ?? '';
 }
 
 /**

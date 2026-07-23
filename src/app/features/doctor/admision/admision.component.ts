@@ -11,7 +11,6 @@ import { ButtonModule } from 'primeng/button';
 import { SelectModule } from 'primeng/select';
 import { RadioButtonModule } from 'primeng/radiobutton';
 import { CheckboxModule } from 'primeng/checkbox';
-import { DatePickerModule } from 'primeng/datepicker';
 import { ToastModule } from 'primeng/toast';
 import { MessageService } from 'primeng/api';
 import { PacienteService } from '@/app/core/services/paciente.service';
@@ -26,380 +25,606 @@ import { FormHeaderComponent } from '@/app/shared/components/form-header/form-he
     imports: [
         CommonModule, FormsModule,
         InputTextModule, TextareaModule, ButtonModule, SelectModule,
-        RadioButtonModule, CheckboxModule, DatePickerModule,
+        RadioButtonModule, CheckboxModule,
         ToastModule, PacienteSearchComponent, FormHeaderComponent
     ],
     providers: [MessageService],
+    styles: [`
+        /* ── Secciones del formulario ─────────────────────────────────────── */
+        .form-section {
+            margin-bottom: 1.5rem;
+        }
+        .form-section__title {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-family: var(--font-display, 'Saira', sans-serif);
+            font-weight: 700;
+            font-size: 0.82rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--p-primary-600);
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid var(--p-surface-200);
+            margin-bottom: 1rem;
+        }
+        :host-context(.app-dark) .form-section__title {
+            color: var(--p-primary-300);
+            border-bottom-color: var(--p-surface-700);
+        }
+        .form-section__body {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+
+        /* ── Firmas al pie ────────────────────────────────────────────────── */
+        .firma-box {
+            text-align: center;
+            padding-top: 0.75rem;
+            border-top: 1px solid var(--p-surface-300);
+        }
+        :host-context(.app-dark) .firma-box {
+            border-top-color: var(--p-surface-600);
+        }
+        .firma-box__label {
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: var(--p-text-muted-color);
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+
+        /* ── Bloque de paciente vacío ─────────────────────────────────────── */
+        .search-card {
+            border: 1px solid var(--p-surface-200);
+            border-radius: 0.85rem;
+            padding: 1.25rem;
+            margin-bottom: 1.25rem;
+            background: var(--p-surface-0);
+        }
+        :host-context(.app-dark) .search-card {
+            background: var(--p-surface-900);
+            border-color: var(--p-surface-700);
+        }
+        .search-card__title {
+            font-family: var(--font-display, 'Saira', sans-serif);
+            font-weight: 700;
+            font-size: 1rem;
+            margin: 0 0 1rem 0;
+            color: var(--p-text-color);
+        }
+
+        /* ── Grids de checkboxes y radios ─────────────────────────────────── */
+        .check-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 0.6rem;
+        }
+        .check-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+        .radio-col {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        .radio-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.87rem;
+        }
+        .seguro-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1.25rem;
+            align-items: center;
+        }
+        .seguro-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.87rem;
+        }
+
+        /* ── Campo span-completo en grid ──────────────────────────────────── */
+        .field-full { grid-column: 1 / -1; }
+
+        /* ── Sheet wrapper ────────────────────────────────────────────────── */
+        .sheet-wrap {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+    `],
     template: `
         <p-toast />
 
         <!-- Buscar paciente si no hay uno seleccionado -->
         @if (!paciente()) {
-            <div class="border border-surface-300 dark:border-surface-600 rounded p-4 mb-4 bg-surface-0 dark:bg-surface-900">
-                <h3 class="mt-0 mb-3 text-lg">Buscar Paciente para Admisión</h3>
+            <div class="search-card sheet-wrap">
+                <h3 class="search-card__title">
+                    <i class="pi pi-search mr-2"></i>Buscar Paciente para Admisión
+                </h3>
                 <app-paciente-search (pacienteSelected)="onPacienteSelected($event)" />
             </div>
         }
 
-        <div class="mx-auto" style="max-width: 1000px;">
+        <div class="sheet-wrap">
+            <!-- Cabecera institucional -->
             <app-form-header
                 title="Hoja de Admisión Hospitalaria"
                 code="HC·M-002"
                 subtitle="Datos del paciente y familiares · diagnóstico de admisión" />
-        </div>
 
-        <!-- FORMULARIO TIPO DOCUMENTO -->
-        <div class="bg-surface-0 dark:bg-surface-900 p-6 doc-sheet mx-auto" style="max-width: 1000px;">
+            <!-- Barra de paciente activo -->
+            @if (paciente()) {
+                <div class="pac-bar">
+                    <div class="pac-bar__info">
+                        <div class="pac-bar__name">
+                            {{ form.apellidoPaterno }} {{ form.apellidoMaterno }}{{ form.apellidoEsposo ? ' de ' + form.apellidoEsposo : '' }}, {{ form.nombres }}
+                        </div>
+                        <div class="pac-bar__meta font-mono text-xs">
+                            CI {{ form.carnetAsegurado || '—' }} · Cama {{ form.cama || 'sin asignar' }} · {{ form.servicio || 'Servicio pendiente' }}
+                        </div>
+                    </div>
+                    <span class="form-code-badge">HC·M-002</span>
+                </div>
+            }
 
-            <!-- FILA: Datos control + V. Servicios -->
-            <div class="grid grid-cols-12 gap-0 border border-surface-300 dark:border-surface-600 text-sm mt-3">
-                <!-- Izquierda: Carnets, fecha, hora -->
-                <div class="col-span-5 border-r border-surface-300 dark:border-surface-600 p-2">
-                    <div class="grid grid-cols-2 gap-y-1 gap-x-2">
-                        <label class="font-semibold text-xs">C. Asegurado</label>
-                        <input pInputText [(ngModel)]="form.carnetAsegurado" class="w-full p-1 text-sm" />
-                        <label class="font-semibold text-xs">C. Beneficiario</label>
-                        <input pInputText [(ngModel)]="form.carnetBeneficiario" class="w-full p-1 text-sm" />
-                        <label class="font-semibold text-xs">Fecha</label>
-                        <input pInputText [(ngModel)]="form.fecha" class="w-full p-1 text-sm" placeholder="DD/MM/YYYY" />
-                        <label class="font-semibold text-xs">Hora - Solicitud</label>
-                        <input pInputText [(ngModel)]="form.horaSolicitud" class="w-full p-1 text-sm" placeholder="HH:MM" />
-                        <label class="font-semibold text-xs">Hora - Entrega</label>
-                        <input pInputText [(ngModel)]="form.horaEntrega" class="w-full p-1 text-sm" placeholder="HH:MM" />
+            <!-- FORMULARIO PRINCIPAL -->
+            <div class="bg-surface-0 dark:bg-surface-900 p-6 doc-sheet">
+
+                <!-- ── SECCIÓN 1: Datos de Ingreso ─────────────────────────── -->
+                <div class="form-section">
+                    <div class="form-section__title">
+                        <i class="pi pi-calendar"></i> Datos de Ingreso
+                    </div>
+                    <div class="form-section__body">
+
+                        <div class="flex flex-col gap-1">
+                            <label class="field-label req" for="fecha">Fecha de Admisión</label>
+                            <input type="date" pInputText id="fecha" [(ngModel)]="form.fecha" />
+                            <span class="field-hint">Fecha en que se registra el ingreso del paciente.</span>
+                        </div>
+
+                        <div class="flex flex-col gap-1">
+                            <label class="field-label req" for="horaSolicitud">Hora — Solicitud</label>
+                            <input type="time" pInputText id="horaSolicitud" [(ngModel)]="form.horaSolicitud" />
+                            <span class="field-hint">Hora en que se solicitó la admisión al servicio.</span>
+                        </div>
+
+                        <div class="flex flex-col gap-1">
+                            <label class="field-label" for="horaEntrega">Hora — Entrega</label>
+                            <input type="time" pInputText id="horaEntrega" [(ngModel)]="form.horaEntrega" />
+                            <span class="field-hint">Hora en que la enfermería recibió al paciente en el piso.</span>
+                        </div>
+
+                        <div class="flex flex-col gap-1">
+                            <label class="field-label req" for="carnetAsegurado">Carnet Asegurado</label>
+                            <input pInputText id="carnetAsegurado" [(ngModel)]="form.carnetAsegurado"
+                                   placeholder="Ej.: 1234567" />
+                            <span class="field-hint">Número de carnet del titular del seguro COSSMIL.</span>
+                        </div>
+
+                        <div class="flex flex-col gap-1">
+                            <label class="field-label" for="carnetBeneficiario">Carnet Beneficiario</label>
+                            <input pInputText id="carnetBeneficiario" [(ngModel)]="form.carnetBeneficiario"
+                                   placeholder="Ej.: 7654321" />
+                            <span class="field-hint">Solo si el paciente es beneficiario (no el titular).</span>
+                        </div>
+
+                        <div class="flex flex-col gap-1">
+                            <label class="field-label" for="estado">Estado</label>
+                            <input pInputText id="estado" [(ngModel)]="form.estado" />
+                            <span class="field-hint">Estado del trámite al momento del ingreso.</span>
+                        </div>
+
                     </div>
                 </div>
 
-                <!-- Centro: V. DE SERVICIOS -->
-                <div class="col-span-4 border-r border-surface-300 dark:border-surface-600 p-2">
-                    <div class="text-center font-bold text-xs mb-2">V. DE SERVICIOS</div>
-                    <div class="grid grid-cols-3 gap-1 text-xs">
-                        <div class="flex items-center gap-1">
-                            <span class="font-semibold">PT 1</span>
-                            <p-checkbox [(ngModel)]="form.vServicios.pt1" [binary]="true" />
+                <!-- ── SECCIÓN 2: V. de Servicios ──────────────────────────── -->
+                <div class="form-section">
+                    <div class="form-section__title">
+                        <i class="pi pi-check-square"></i> V. de Servicios
+                    </div>
+                    <div class="check-grid" style="max-width: 380px;">
+                        <div class="check-item">
+                            <p-checkbox [(ngModel)]="form.vServicios.pt1" [binary]="true" inputId="vPT1" />
+                            <label for="vPT1">PT 1</label>
                         </div>
-                        <div class="flex items-center gap-1">
-                            <span class="font-semibold">PIP</span>
-                            <p-checkbox [(ngModel)]="form.vServicios.pip" [binary]="true" />
+                        <div class="check-item">
+                            <p-checkbox [(ngModel)]="form.vServicios.pip" [binary]="true" inputId="vPIP" />
+                            <label for="vPIP">PIP</label>
                         </div>
-                        <div class="flex items-center gap-1">
-                            <span class="font-semibold">PAPA</span>
-                            <p-checkbox [(ngModel)]="form.vServicios.papa" [binary]="true" />
+                        <div class="check-item">
+                            <p-checkbox [(ngModel)]="form.vServicios.papa" [binary]="true" inputId="vPAPA" />
+                            <label for="vPAPA">PAPA</label>
                         </div>
-                        <div class="flex items-center gap-1">
-                            <span class="font-semibold">PT 2</span>
-                            <p-checkbox [(ngModel)]="form.vServicios.pt2" [binary]="true" />
+                        <div class="check-item">
+                            <p-checkbox [(ngModel)]="form.vServicios.pt2" [binary]="true" inputId="vPT2" />
+                            <label for="vPT2">PT 2</label>
                         </div>
-                        <div class="flex items-center gap-1">
-                            <span class="font-semibold">PIPA</span>
-                            <p-checkbox [(ngModel)]="form.vServicios.pipa" [binary]="true" />
+                        <div class="check-item">
+                            <p-checkbox [(ngModel)]="form.vServicios.pipa" [binary]="true" inputId="vPIPA" />
+                            <label for="vPIPA">PIPA</label>
                         </div>
-                        <div class="flex items-center gap-1">
-                            <span class="font-semibold">PIC</span>
-                            <p-checkbox [(ngModel)]="form.vServicios.pic" [binary]="true" />
+                        <div class="check-item">
+                            <p-checkbox [(ngModel)]="form.vServicios.pic" [binary]="true" inputId="vPIC" />
+                            <label for="vPIC">PIC</label>
                         </div>
                     </div>
                 </div>
 
-                <!-- Derecha: Estado, Servicio, Cama -->
-                <div class="col-span-3 p-2">
-                    <div class="grid grid-cols-1 gap-y-1 text-xs">
-                        <div>
-                            <label class="font-semibold">Estado:</label>
-                            <input pInputText [(ngModel)]="form.estado" class="w-full p-1 text-sm" />
-                        </div>
-                        <div>
-                            <label class="font-semibold">Servicio:</label>
-                            <input pInputText [(ngModel)]="form.servicio" class="w-full p-1 text-sm" />
-                        </div>
-                        <div>
-                            <label class="font-semibold">Cama:</label>
-                            <input pInputText [(ngModel)]="form.cama" class="w-full p-1 text-sm" />
-                        </div>
+                <!-- ── SECCIÓN 3: Datos del Paciente ───────────────────────── -->
+                <div class="form-section">
+                    <div class="form-section__title">
+                        <i class="pi pi-user"></i> Datos del Paciente
                     </div>
-                </div>
-            </div>
+                    <div class="form-section__body">
 
-            <!-- DATOS DEL PACIENTE -->
-            <div class="border border-surface-300 dark:border-surface-600 mt-3">
-                <div class="bg-surface-100 dark:bg-surface-800 text-center font-bold py-1 text-sm border-b border-surface-300 dark:border-surface-600">
-                    DATOS DEL PACIENTE
-                </div>
-                <div class="p-3 text-sm">
-                    <!-- Fila 1: Apellidos y Nombres -->
-                    <div class="grid grid-cols-4 gap-3 mb-3">
-                        <div>
-                            <label class="block text-xs text-muted-color mb-1">Ap. Paterno</label>
-                            <input pInputText [(ngModel)]="form.apellidoPaterno" class="w-full p-1 text-sm font-semibold" />
+                        <div class="flex flex-col gap-1">
+                            <label class="field-label req" for="apPaterno">Apellido Paterno</label>
+                            <input pInputText id="apPaterno" [(ngModel)]="form.apellidoPaterno"
+                                   placeholder="Ej.: Mamani" />
                         </div>
-                        <div>
-                            <label class="block text-xs text-muted-color mb-1">Ap. Materno</label>
-                            <input pInputText [(ngModel)]="form.apellidoMaterno" class="w-full p-1 text-sm font-semibold" />
-                        </div>
-                        <div>
-                            <label class="block text-xs text-muted-color mb-1">Ap. Esposo</label>
-                            <input pInputText [(ngModel)]="form.apellidoEsposo" class="w-full p-1 text-sm" />
-                        </div>
-                        <div>
-                            <label class="block text-xs text-muted-color mb-1">Nombres</label>
-                            <input pInputText [(ngModel)]="form.nombres" class="w-full p-1 text-sm font-semibold" />
-                        </div>
-                    </div>
 
-                    <!-- Fila 2: Edad, Estado Civil, Sexo -->
-                    <div class="grid grid-cols-12 gap-3 mb-3">
-                        <div class="col-span-2">
-                            <label class="block text-xs text-muted-color mb-1">Edad</label>
-                            <div class="flex items-center gap-1">
-                                <input pInputText [(ngModel)]="form.edad" class="w-16 p-1 text-sm" />
-                                <span class="text-xs">Años</span>
-                            </div>
+                        <div class="flex flex-col gap-1">
+                            <label class="field-label" for="apMaterno">Apellido Materno</label>
+                            <input pInputText id="apMaterno" [(ngModel)]="form.apellidoMaterno"
+                                   placeholder="Ej.: Quispe" />
                         </div>
-                        <div class="col-span-3">
-                            <label class="block text-xs text-muted-color mb-1">Estado Civil</label>
-                            <p-select [(ngModel)]="form.estadoCivil" [options]="estadosCiviles" placeholder="Seleccione" styleClass="w-full" size="small" />
+
+                        <div class="flex flex-col gap-1">
+                            <label class="field-label" for="apEsposo">Apellido de Esposo/a</label>
+                            <input pInputText id="apEsposo" [(ngModel)]="form.apellidoEsposo"
+                                   placeholder="Solo si aplica" />
+                            <span class="field-hint">Apellido adquirido por matrimonio (de casada).</span>
                         </div>
-                        <div class="col-span-4">
-                            <label class="block text-xs text-muted-color mb-1">Sexo</label>
-                            <div class="flex gap-3 mt-1">
-                                <div class="flex items-center gap-1">
+
+                        <div class="flex flex-col gap-1">
+                            <label class="field-label req" for="nombres">Nombres</label>
+                            <input pInputText id="nombres" [(ngModel)]="form.nombres"
+                                   placeholder="Ej.: Juan Carlos" />
+                        </div>
+
+                        <div class="flex flex-col gap-1">
+                            <label class="field-label req" for="edad">Edad (años)</label>
+                            <input pInputText id="edad" [(ngModel)]="form.edad"
+                                   placeholder="Ej.: 45" />
+                        </div>
+
+                        <div class="flex flex-col gap-1">
+                            <label class="field-label" for="estadoCivil">Estado Civil</label>
+                            <p-select id="estadoCivil" [(ngModel)]="form.estadoCivil"
+                                      [options]="estadosCiviles" placeholder="Seleccione"
+                                      styleClass="w-full" />
+                        </div>
+
+                        <div class="flex flex-col gap-1">
+                            <label class="field-label req">Sexo</label>
+                            <div class="flex gap-4 mt-1">
+                                <div class="radio-item">
                                     <p-radiobutton [(ngModel)]="form.sexo" value="M" name="sexo" inputId="sM" />
-                                    <label for="sM" class="text-xs">MASCULINO</label>
+                                    <label for="sM">Masculino</label>
                                 </div>
-                                <div class="flex items-center gap-1">
+                                <div class="radio-item">
                                     <p-radiobutton [(ngModel)]="form.sexo" value="F" name="sexo" inputId="sF" />
-                                    <label for="sF" class="text-xs">FEMENINO</label>
+                                    <label for="sF">Femenino</label>
                                 </div>
                             </div>
                         </div>
+
+                        <div class="flex flex-col gap-1">
+                            <label class="field-label" for="lugNacimiento">Lugar de Nacimiento</label>
+                            <input pInputText id="lugNacimiento" [(ngModel)]="form.lugarNacimiento"
+                                   placeholder="Ej.: La Paz" />
+                        </div>
+
+                        <div class="flex flex-col gap-1">
+                            <label class="field-label" for="ocupacion">Ocupación</label>
+                            <input pInputText id="ocupacion" [(ngModel)]="form.ocupacion"
+                                   placeholder="Ej.: Docente" />
+                        </div>
+
+                        <div class="flex flex-col gap-1">
+                            <label class="field-label" for="lugTrabajo">Lugar de Trabajo</label>
+                            <input pInputText id="lugTrabajo" [(ngModel)]="form.lugarTrabajo"
+                                   placeholder="Ej.: EB Calama" />
+                        </div>
+
+                        <div class="flex flex-col gap-1">
+                            <label class="field-label" for="unidad">Unidad</label>
+                            <input pInputText id="unidad" [(ngModel)]="form.unidad"
+                                   placeholder="Ej.: RIAC-1" />
+                        </div>
+
+                        <div class="flex flex-col gap-1">
+                            <label class="field-label" for="grado">Grado</label>
+                            <input pInputText id="grado" [(ngModel)]="form.grado"
+                                   placeholder="Ej.: Capitán" />
+                        </div>
+
                     </div>
 
-                    <!-- Fila 3: Asegurado (izq) + Datos laborales (der) -->
-                    <div class="grid grid-cols-12 gap-3 mb-3">
-                        <!-- Tipo Asegurado -->
-                        <div class="col-span-3 border-r border-surface-200 dark:border-surface-700 pr-3">
-                            <label class="block text-xs font-semibold mb-1">Asegurado</label>
-                            <div class="flex flex-col gap-1">
+                    <!-- Tipo Asegurado + Fuerza + Seguro CDS -->
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-4">
+
+                        <div class="flex flex-col gap-1">
+                            <label class="field-label">Tipo de Asegurado</label>
+                            <div class="radio-col mt-1">
                                 @for (tipo of tiposAsegurado; track tipo.value) {
-                                    <div class="flex items-center gap-1">
-                                        <p-radiobutton [(ngModel)]="form.tipoAsegurado" [value]="tipo.value" name="tipoAseg" [inputId]="'ta' + tipo.value" />
-                                        <label [for]="'ta' + tipo.value" class="text-xs">{{ tipo.label }}</label>
+                                    <div class="radio-item">
+                                        <p-radiobutton [(ngModel)]="form.tipoAsegurado"
+                                                       [value]="tipo.value"
+                                                       name="tipoAseg"
+                                                       [inputId]="'ta' + tipo.value" />
+                                        <label [for]="'ta' + tipo.value">{{ tipo.label }}</label>
                                     </div>
                                 }
                             </div>
                         </div>
 
-                        <!-- Datos laborales/militares -->
-                        <div class="col-span-6">
-                            <div class="grid grid-cols-2 gap-2">
-                                <div>
-                                    <label class="block text-xs text-muted-color mb-1">Lugar de Nacimiento</label>
-                                    <input pInputText [(ngModel)]="form.lugarNacimiento" class="w-full p-1 text-sm" />
-                                </div>
-                                <div>
-                                    <label class="block text-xs text-muted-color mb-1">Ocupación</label>
-                                    <input pInputText [(ngModel)]="form.ocupacion" class="w-full p-1 text-sm" />
-                                </div>
-                                <div>
-                                    <label class="block text-xs text-muted-color mb-1">Lugar de Trabajo</label>
-                                    <input pInputText [(ngModel)]="form.lugarTrabajo" class="w-full p-1 text-sm" />
-                                </div>
-                                <div>
-                                    <label class="block text-xs text-muted-color mb-1">Unidad</label>
-                                    <input pInputText [(ngModel)]="form.unidad" class="w-full p-1 text-sm" />
-                                </div>
-                                <div>
-                                    <label class="block text-xs text-muted-color mb-1">Grado</label>
-                                    <input pInputText [(ngModel)]="form.grado" class="w-full p-1 text-sm" />
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Fuerza -->
-                        <div class="col-span-3">
-                            <label class="block text-xs font-semibold mb-1">Fuerza:</label>
-                            <div class="flex flex-col gap-1">
-                                <div class="flex items-center gap-1">
+                        <div class="flex flex-col gap-1">
+                            <label class="field-label">Fuerza Armada</label>
+                            <div class="radio-col mt-1">
+                                <div class="radio-item">
                                     <p-radiobutton [(ngModel)]="form.fuerza" value="EJERCITO" name="fuerza" inputId="fE" />
-                                    <label for="fE" class="text-xs">Ejército</label>
+                                    <label for="fE">Ejército</label>
                                 </div>
-                                <div class="flex items-center gap-1">
+                                <div class="radio-item">
                                     <p-radiobutton [(ngModel)]="form.fuerza" value="AEREA" name="fuerza" inputId="fA" />
-                                    <label for="fA" class="text-xs">Aérea</label>
+                                    <label for="fA">Aérea</label>
                                 </div>
-                                <div class="flex items-center gap-1">
+                                <div class="radio-item">
                                     <p-radiobutton [(ngModel)]="form.fuerza" value="NAVAL" name="fuerza" inputId="fN" />
-                                    <label for="fN" class="text-xs">Naval</label>
+                                    <label for="fN">Naval</label>
                                 </div>
                             </div>
                         </div>
+
+                        <div class="flex flex-col gap-1">
+                            <label class="field-label">Seguro CDS (COSSMIL)</label>
+                            <div class="flex flex-col gap-2 mt-1">
+                                <div class="seguro-item">
+                                    <p-checkbox [(ngModel)]="form.seguroEnfermedad" [binary]="true" inputId="segEnf" />
+                                    <label for="segEnf">Enfermedad</label>
+                                </div>
+                                <div class="seguro-item">
+                                    <p-checkbox [(ngModel)]="form.seguroMaternidad" [binary]="true" inputId="segMat" />
+                                    <label for="segMat">Maternidad</label>
+                                </div>
+                                <div class="seguro-item">
+                                    <p-checkbox [(ngModel)]="form.seguroRiesgo" [binary]="true" inputId="segRie" />
+                                    <label for="segRie">Riesgo Profesional</label>
+                                </div>
+                            </div>
+                        </div>
+
                     </div>
 
-                    <!-- Fila 4: Seguro -->
-                    <div class="flex items-center gap-4 mb-3 border-t border-surface-200 dark:border-surface-700 pt-2">
-                        <span class="text-xs font-semibold">Seguro CDS (SEGURO COSSMIL):</span>
-                        <div class="flex items-center gap-1">
-                            <p-checkbox [(ngModel)]="form.seguroEnfermedad" [binary]="true" inputId="segEnf" />
-                            <label for="segEnf" class="text-xs">ENFERMEDAD</label>
-                        </div>
-                        <div class="flex items-center gap-1">
-                            <p-checkbox [(ngModel)]="form.seguroMaternidad" [binary]="true" inputId="segMat" />
-                            <label for="segMat" class="text-xs">MATERNIDAD</label>
-                        </div>
-                        <div class="flex items-center gap-1">
-                            <p-checkbox [(ngModel)]="form.seguroRiesgo" [binary]="true" inputId="segRie" />
-                            <label for="segRie" class="text-xs">RIESGO PROFESIONAL</label>
-                        </div>
-                    </div>
-
-                    <!-- Fila 5: Residencia Habitual -->
-                    <div class="border-t border-surface-200 dark:border-surface-700 pt-2">
-                        <span class="text-xs font-semibold">Residencia Habitual:</span>
-                        <div class="grid grid-cols-6 gap-2 mt-1">
-                            <div>
-                                <label class="block text-xs text-muted-color mb-1">Departamento</label>
-                                <p-select [(ngModel)]="form.residencia.departamento" [options]="departamentos" placeholder="Sel." styleClass="w-full" size="small" />
+                    <!-- Residencia habitual -->
+                    <div class="mt-4">
+                        <label class="field-label" style="display:block;margin-bottom:0.75rem;">
+                            <i class="pi pi-map-marker mr-1"></i>Residencia Habitual
+                        </label>
+                        <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+                            <div class="flex flex-col gap-1">
+                                <label class="field-label" for="resDepto">Departamento</label>
+                                <p-select id="resDepto" [(ngModel)]="form.residencia.departamento"
+                                          [options]="departamentos" placeholder="Seleccione"
+                                          styleClass="w-full" />
                             </div>
-                            <div>
-                                <label class="block text-xs text-muted-color mb-1">Provincia</label>
-                                <input pInputText [(ngModel)]="form.residencia.provincia" class="w-full p-1 text-sm" />
+                            <div class="flex flex-col gap-1">
+                                <label class="field-label" for="resProv">Provincia</label>
+                                <input pInputText id="resProv" [(ngModel)]="form.residencia.provincia"
+                                       placeholder="Ej.: Murillo" />
                             </div>
-                            <div>
-                                <label class="block text-xs text-muted-color mb-1">Localidad</label>
-                                <input pInputText [(ngModel)]="form.residencia.localidad" class="w-full p-1 text-sm" />
+                            <div class="flex flex-col gap-1">
+                                <label class="field-label" for="resLoc">Localidad</label>
+                                <input pInputText id="resLoc" [(ngModel)]="form.residencia.localidad"
+                                       placeholder="Ej.: La Paz" />
                             </div>
-                            <div>
-                                <label class="block text-xs text-muted-color mb-1">Zona</label>
-                                <input pInputText [(ngModel)]="form.residencia.zona" class="w-full p-1 text-sm" />
+                            <div class="flex flex-col gap-1">
+                                <label class="field-label" for="resZona">Zona</label>
+                                <input pInputText id="resZona" [(ngModel)]="form.residencia.zona"
+                                       placeholder="Ej.: Villa Copacabana" />
                             </div>
-                            <div>
-                                <label class="block text-xs text-muted-color mb-1">Calle</label>
-                                <input pInputText [(ngModel)]="form.residencia.calle" class="w-full p-1 text-sm" />
+                            <div class="flex flex-col gap-1">
+                                <label class="field-label" for="resCalle">Calle</label>
+                                <input pInputText id="resCalle" [(ngModel)]="form.residencia.calle"
+                                       placeholder="Ej.: Av. 6 de Agosto" />
                             </div>
-                            <div>
-                                <label class="block text-xs text-muted-color mb-1">No.</label>
-                                <input pInputText [(ngModel)]="form.residencia.numero" class="w-full p-1 text-sm" />
+                            <div class="flex flex-col gap-1">
+                                <label class="field-label" for="resNum">No.</label>
+                                <input pInputText id="resNum" [(ngModel)]="form.residencia.numero"
+                                       placeholder="Ej.: 1234" />
                             </div>
                         </div>
                     </div>
                 </div>
-            </div>
 
-            <!-- DATOS DE LOS FAMILIARES -->
-            <div class="border border-surface-300 dark:border-surface-600 mt-3">
-                <div class="bg-surface-100 dark:bg-surface-800 text-center font-bold py-1 text-sm border-b border-surface-300 dark:border-surface-600">
-                    DATOS DE LOS FAMILIARES
-                </div>
-                <div class="p-3 text-sm">
-                    <div class="grid grid-cols-2 gap-3 mb-2">
-                        <div>
-                            <label class="block text-xs text-muted-color mb-1">Nombre del Padre</label>
-                            <input pInputText [(ngModel)]="form.nombrePadre" class="w-full p-1 text-sm" />
-                        </div>
-                        <div>
-                            <label class="block text-xs text-muted-color mb-1">Nombre de la Madre</label>
-                            <input pInputText [(ngModel)]="form.nombreMadre" class="w-full p-1 text-sm" />
-                        </div>
+                <!-- ── SECCIÓN 4: Diagnóstico de Admisión ──────────────────── -->
+                <div class="form-section">
+                    <div class="form-section__title">
+                        <i class="pi pi-heart-fill"></i> Diagnóstico de Admisión
                     </div>
-                    <div class="grid grid-cols-2 gap-3 mb-2">
-                        <div>
-                            <label class="block text-xs text-muted-color mb-1">Nombre del Cónyuge</label>
-                            <input pInputText [(ngModel)]="form.nombreConyuge" class="w-full p-1 text-sm" />
-                        </div>
-                        <div>
-                            <label class="block text-xs text-muted-color mb-1">Nombre Conviviente</label>
-                            <input pInputText [(ngModel)]="form.nombreConviviente" class="w-full p-1 text-sm" />
-                        </div>
-                    </div>
-                    <div class="grid grid-cols-12 gap-3 mb-2">
-                        <div class="col-span-8">
-                            <label class="block text-xs text-muted-color mb-1">Nombre de la persona más próxima</label>
-                            <input pInputText [(ngModel)]="form.personaProxima" class="w-full p-1 text-sm" />
-                        </div>
-                        <div class="col-span-4">
-                            <label class="block text-xs text-muted-color mb-1">Parentesco</label>
-                            <input pInputText [(ngModel)]="form.parentescoProximo" class="w-full p-1 text-sm" />
-                        </div>
-                    </div>
-                    <div class="grid grid-cols-12 gap-3 mb-2">
-                        <div class="col-span-5">
-                            <label class="block text-xs text-muted-color mb-1">Dirección persona más próxima</label>
-                            <input pInputText [(ngModel)]="form.direccionProximo" class="w-full p-1 text-sm" />
-                        </div>
-                        <div class="col-span-3">
-                            <label class="block text-xs text-muted-color mb-1">Zona</label>
-                            <input pInputText [(ngModel)]="form.zonaProximo" class="w-full p-1 text-sm" />
-                        </div>
-                        <div class="col-span-2">
-                            <label class="block text-xs text-muted-color mb-1">Calle</label>
-                            <input pInputText [(ngModel)]="form.calleProximo" class="w-full p-1 text-sm" />
-                        </div>
-                        <div class="col-span-2">
-                            <label class="block text-xs text-muted-color mb-1">No.</label>
-                            <input pInputText [(ngModel)]="form.numProximo" class="w-full p-1 text-sm" />
-                        </div>
-                    </div>
-                    <div class="grid grid-cols-2 gap-3 mb-2">
-                        <div>
-                            <label class="block text-xs text-muted-color mb-1">Teléfono</label>
-                            <input pInputText [(ngModel)]="form.telefono" class="w-full p-1 text-sm" />
-                        </div>
-                        <div>
-                            <label class="block text-xs text-muted-color mb-1">Otros Teléfonos</label>
-                            <input pInputText [(ngModel)]="form.otrosTelefonos" class="w-full p-1 text-sm" />
-                        </div>
-                    </div>
-                    <div class="grid grid-cols-12 gap-3 border-t border-surface-200 dark:border-surface-700 pt-2">
-                        <div class="col-span-6">
-                            <label class="block text-xs text-muted-color mb-1">Paciente acompañado por: Nombre</label>
-                            <input pInputText [(ngModel)]="form.acompanante" class="w-full p-1 text-sm" />
-                        </div>
-                        <div class="col-span-3">
-                            <label class="block text-xs text-muted-color mb-1">Firma</label>
-                            <input pInputText [(ngModel)]="form.firmaAcompanante" class="w-full p-1 text-sm" />
-                        </div>
-                        <div class="col-span-3">
-                            <label class="block text-xs text-muted-color mb-1">C.I.</label>
-                            <input pInputText [(ngModel)]="form.ciAcompanante" class="w-full p-1 text-sm" />
-                        </div>
-                    </div>
-                </div>
-            </div>
+                    <div class="form-section__body">
 
-            <!-- DIAGNÓSTICO DE ADMISIÓN -->
-            <div class="border border-surface-300 dark:border-surface-600 mt-3">
-                <div class="bg-surface-100 dark:bg-surface-800 font-bold py-1 px-3 text-sm border-b border-surface-300 dark:border-surface-600">
-                    DIAGNÓSTICO DE ADMISIÓN
-                </div>
-                <div class="p-3">
-                    <textarea pTextarea [(ngModel)]="form.diagnosticoAdmision" rows="2" class="w-full text-sm"></textarea>
-                </div>
-            </div>
-
-            <!-- PIE: Médico y Firmas -->
-            <div class="border border-surface-300 dark:border-surface-600 border-t-0 mt-0">
-                <div class="p-3 text-sm">
-                    <div class="mb-3">
-                        <label class="block text-xs text-muted-color mb-1">Médico Quién Interna</label>
-                        <input pInputText [(ngModel)]="form.medicoInterna" class="w-full p-1 text-sm" />
-                    </div>
-                    <div class="grid grid-cols-2 gap-4">
-                        <div class="text-center border-t border-surface-300 dark:border-surface-600 pt-2">
-                            <div class="text-xs font-semibold">FIRMA Y SELLO</div>
-                            <div class="text-xs text-muted-color">MEDICO DE EMERGENCIA</div>
+                        <div class="flex flex-col gap-1 field-full">
+                            <label class="field-label req" for="diagnostico">Diagnóstico</label>
+                            <textarea pTextarea id="diagnostico" [(ngModel)]="form.diagnosticoAdmision"
+                                      rows="3" class="w-full"
+                                      placeholder="Describa el diagnóstico principal al momento del ingreso..."></textarea>
+                            <span class="field-hint">Diagnóstico principal al momento del ingreso. Incluya CIE-10 si conoce (ej.: J18.9 Neumonía, no especificada).</span>
                         </div>
-                        <div class="text-center border-t border-surface-300 dark:border-surface-600 pt-2">
-                            <div class="text-xs font-semibold">FIRMA</div>
-                            <label class="block text-xs text-muted-color mb-1">SELLO ADMISIÓN</label>
-                            <input pInputText [(ngModel)]="form.selloAdmision" class="w-full p-1 text-sm text-center" />
+
+                        <div class="flex flex-col gap-1">
+                            <label class="field-label req" for="servicio">Servicio de Hospitalización</label>
+                            <input pInputText id="servicio" [(ngModel)]="form.servicio"
+                                   placeholder="Ej.: Cirugía General" />
+                            <span class="field-hint">Servicio de hospitalización al que ingresa el paciente.</span>
+                        </div>
+
+                        <div class="flex flex-col gap-1">
+                            <label class="field-label req" for="cama">Número de Cama</label>
+                            <input pInputText id="cama" [(ngModel)]="form.cama"
+                                   placeholder="Ej.: 101-A" />
+                            <span class="field-hint">Cama asignada en el piso de hospitalización.</span>
+                        </div>
+
+                        <div class="flex flex-col gap-1">
+                            <label class="field-label" for="medicoInterna">Médico que Interna</label>
+                            <input pInputText id="medicoInterna" [(ngModel)]="form.medicoInterna"
+                                   placeholder="Ej.: Dr. Vargas" />
+                            <span class="field-hint">Nombre del médico de emergencia o especialista que ordena el ingreso.</span>
+                        </div>
+
+                        <div class="flex flex-col gap-1">
+                            <label class="field-label" for="selloAdmision">Sello de Admisión</label>
+                            <input pInputText id="selloAdmision" [(ngModel)]="form.selloAdmision"
+                                   placeholder="Código o nombre del operador" />
+                            <span class="field-hint">Sello o identificación del operador de admisiones.</span>
+                        </div>
+
+                    </div>
+
+                    <!-- Firmas al pie -->
+                    <div class="grid grid-cols-2 gap-6 mt-6">
+                        <div class="firma-box">
+                            <div class="firma-box__label">Firma y Sello</div>
+                            <div class="field-hint mt-1">Médico de Emergencia</div>
+                        </div>
+                        <div class="firma-box">
+                            <div class="firma-box__label">Firma</div>
+                            <div class="field-hint mt-1">Enfermera de Admisión</div>
                         </div>
                     </div>
                 </div>
-            </div>
 
-            <!-- BOTONES -->
-            <div class="flex justify-end gap-2 mt-4">
-                <p-button label="Guardar" icon="pi pi-save" (onClick)="onSave()" />
-                <p-button label="Cancelar" icon="pi pi-times" severity="secondary" (onClick)="onCancel()" />
+                <!-- ── SECCIÓN 5: Familiares y Contacto de Emergencia ──────── -->
+                <div class="form-section">
+                    <div class="form-section__title">
+                        <i class="pi pi-users"></i> Familiares y Contacto de Emergencia
+                    </div>
+                    <div class="form-section__body">
+
+                        <div class="flex flex-col gap-1">
+                            <label class="field-label" for="nombrePadre">Nombre del Padre</label>
+                            <input pInputText id="nombrePadre" [(ngModel)]="form.nombrePadre"
+                                   placeholder="Nombre completo" />
+                        </div>
+
+                        <div class="flex flex-col gap-1">
+                            <label class="field-label" for="nombreMadre">Nombre de la Madre</label>
+                            <input pInputText id="nombreMadre" [(ngModel)]="form.nombreMadre"
+                                   placeholder="Nombre completo" />
+                        </div>
+
+                        <div class="flex flex-col gap-1">
+                            <label class="field-label" for="nombreConyuge">Nombre del Cónyuge</label>
+                            <input pInputText id="nombreConyuge" [(ngModel)]="form.nombreConyuge"
+                                   placeholder="Nombre completo" />
+                        </div>
+
+                        <div class="flex flex-col gap-1">
+                            <label class="field-label" for="nombreConviviente">Nombre del Conviviente</label>
+                            <input pInputText id="nombreConviviente" [(ngModel)]="form.nombreConviviente"
+                                   placeholder="Nombre completo" />
+                        </div>
+
+                        <div class="flex flex-col gap-1">
+                            <label class="field-label req" for="personaProxima">Persona más Próxima</label>
+                            <input pInputText id="personaProxima" [(ngModel)]="form.personaProxima"
+                                   placeholder="Nombre completo del contacto de emergencia" />
+                            <span class="field-hint">Familiar o persona de confianza a quien avisar en caso de emergencia.</span>
+                        </div>
+
+                        <div class="flex flex-col gap-1">
+                            <label class="field-label" for="parentescoProximo">Parentesco</label>
+                            <input pInputText id="parentescoProximo" [(ngModel)]="form.parentescoProximo"
+                                   placeholder="Ej.: Hijo, Esposa, Hermano" />
+                        </div>
+
+                        <div class="flex flex-col gap-1">
+                            <label class="field-label" for="telefono">Teléfono Principal</label>
+                            <input pInputText id="telefono" [(ngModel)]="form.telefono"
+                                   placeholder="Ej.: 70012345" />
+                            <span class="field-hint">Teléfono celular o fijo del contacto de emergencia.</span>
+                        </div>
+
+                        <div class="flex flex-col gap-1">
+                            <label class="field-label" for="otrosTelefonos">Otros Teléfonos</label>
+                            <input pInputText id="otrosTelefonos" [(ngModel)]="form.otrosTelefonos"
+                                   placeholder="Ej.: 22345678 / 71234567" />
+                        </div>
+
+                        <div class="flex flex-col gap-1">
+                            <label class="field-label" for="direccionProximo">Dirección</label>
+                            <input pInputText id="direccionProximo" [(ngModel)]="form.direccionProximo"
+                                   placeholder="Calle y número del contacto de emergencia" />
+                        </div>
+
+                        <div class="flex flex-col gap-1">
+                            <label class="field-label" for="zonaProximo">Zona</label>
+                            <input pInputText id="zonaProximo" [(ngModel)]="form.zonaProximo"
+                                   placeholder="Ej.: Sopocachi" />
+                        </div>
+
+                        <div class="flex flex-col gap-1">
+                            <label class="field-label" for="calleProximo">Calle</label>
+                            <input pInputText id="calleProximo" [(ngModel)]="form.calleProximo"
+                                   placeholder="Ej.: Av. Arce" />
+                        </div>
+
+                        <div class="flex flex-col gap-1">
+                            <label class="field-label" for="numProximo">No.</label>
+                            <input pInputText id="numProximo" [(ngModel)]="form.numProximo"
+                                   placeholder="Ej.: 2456" />
+                        </div>
+
+                    </div>
+
+                    <!-- Acompañante -->
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4 pt-4"
+                         style="border-top: 1px solid var(--p-surface-200);">
+                        <div class="flex flex-col gap-1">
+                            <label class="field-label" for="acompanante">Acompañante al Ingreso</label>
+                            <input pInputText id="acompanante" [(ngModel)]="form.acompanante"
+                                   placeholder="Nombre completo" />
+                            <span class="field-hint">Persona que acompaña al paciente en el momento del ingreso.</span>
+                        </div>
+                        <div class="flex flex-col gap-1">
+                            <label class="field-label" for="firmaAcompanante">Firma</label>
+                            <input pInputText id="firmaAcompanante" [(ngModel)]="form.firmaAcompanante"
+                                   placeholder="Firma del acompañante" />
+                        </div>
+                        <div class="flex flex-col gap-1">
+                            <label class="field-label" for="ciAcompanante">C.I. Acompañante</label>
+                            <input pInputText id="ciAcompanante" [(ngModel)]="form.ciAcompanante"
+                                   placeholder="Ej.: 8765432" />
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ── BOTONES ──────────────────────────────────────────────── -->
+                <div class="flex justify-end gap-2 mt-2">
+                    <p-button
+                        label="Cancelar"
+                        icon="pi pi-times"
+                        severity="secondary"
+                        (onClick)="onCancel()" />
+                    <p-button
+                        label="Guardar Admisión"
+                        icon="pi pi-save"
+                        [loading]="guardando()"
+                        (onClick)="onSave()" />
+                </div>
+
             </div>
         </div>
     `
@@ -420,6 +645,7 @@ export class AdmisionComponent implements OnInit {
 
     pacienteId = signal<number | null>(null);
     paciente = signal<Paciente | null>(null);
+    guardando = signal<boolean>(false);
 
     estadosCiviles = ['SOLTERO(A)', 'CASADO(A)', 'DIVORCIADO(A)', 'VIUDO(A)', 'UNION LIBRE'];
     departamentos = ['LA PAZ', 'COCHABAMBA', 'SANTA CRUZ', 'ORURO', 'POTOSI', 'CHUQUISACA', 'TARIJA', 'BENI', 'PANDO'];
@@ -499,8 +725,15 @@ export class AdmisionComponent implements OnInit {
 
     ngOnInit(): void {
         const now = new Date();
-        this.form.fecha = now.toLocaleDateString('es-BO');
-        this.form.horaSolicitud = now.toLocaleTimeString('es-BO', { hour: '2-digit', minute: '2-digit' });
+        // type="date" espera formato YYYY-MM-DD
+        const yyyy = now.getFullYear();
+        const mm = String(now.getMonth() + 1).padStart(2, '0');
+        const dd = String(now.getDate()).padStart(2, '0');
+        this.form.fecha = `${yyyy}-${mm}-${dd}`;
+        // type="time" espera formato HH:MM
+        const hh = String(now.getHours()).padStart(2, '0');
+        const min = String(now.getMinutes()).padStart(2, '0');
+        this.form.horaSolicitud = `${hh}:${min}`;
     }
 
     onPacienteSelected(paciente: Paciente) {
@@ -560,14 +793,21 @@ export class AdmisionComponent implements OnInit {
     }
 
     onSave() {
+        this.guardando.set(true);
         const admision = {
             pacienteId: this.pacienteId(),
             ...this.form
         };
 
         this.hcService.createAdmision(admision).subscribe({
-            next: () => this.messageService.add({ severity: 'success', summary: 'Guardado', detail: 'Admisión registrada exitosamente' }),
-            error: () => this.messageService.add({ severity: 'error', summary: 'Error', detail: 'No se pudo guardar la admisión' })
+            next: () => {
+                this.guardando.set(false);
+                this.messageService.add({ severity: 'success', summary: 'Guardado', detail: 'Admisión registrada exitosamente' });
+            },
+            error: () => {
+                this.guardando.set(false);
+                this.messageService.add({ severity: 'error', summary: 'Error', detail: 'No se pudo guardar la admisión' });
+            }
         });
     }
 
