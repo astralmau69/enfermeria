@@ -1,176 +1,117 @@
-# 🌱 Proyecto Semilla Corporativo
-### Angular 21 + PrimeNG 21 + Tailwind CSS v4 + Sakai Template
+# Módulo de Enfermería e Internación
 
-Plantilla base corporativa para iniciar nuevos sistemas internos. Incluye autenticación, layout administrativo, arquitectura modular con Lazy Loading y un ejemplo funcional de CRUD de usuarios y menús.
+Sistema web para el registro clínico de pacientes internados: signos vitales, notas de enfermería, administración de medicamentos, evolución médica y admisión.
 
----
+Dos roles trabajan sobre el mismo paciente con vistas y permisos distintos — **enfermería** llena las hojas de piso, **médico** registra evolución, exámenes y consentimientos.
 
-## 🚀 Inicio Rápido
-
-```bash
-# 1. Instalar dependencias
-npm install
-
-# 2. Iniciar servidor de desarrollo
-npm start        # → http://localhost:4200
-
-# 3. Compilar producción
-npm run build
-```
-
-**Credenciales de prueba:** `admin` / `admin`
+![Angular](https://img.shields.io/badge/Angular_21-DD0031?style=flat-square&logo=angular&logoColor=white)
+![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=flat-square&logo=typescript&logoColor=white)
+![PrimeNG](https://img.shields.io/badge/PrimeNG_21-DD0031?style=flat-square)
+![Tailwind](https://img.shields.io/badge/Tailwind_4-06B6D4?style=flat-square&logo=tailwindcss&logoColor=white)
 
 ---
 
-## 🏗️ Arquitectura del Proyecto
+## El problema
+
+La hoja de piso de un paciente internado se llena en papel y se archiva en una carpeta física. Cuando el médico pasa visita necesita ver qué registró enfermería en el turno anterior, y a menudo esa hoja está en otro lado.
+
+Este módulo pone el registro en una sola vista por paciente, donde cada hoja queda asociada al paciente activo y visible para ambos roles según lo que a cada uno le corresponde.
+
+---
+
+## Funcionalidad
+
+**Enfermería**
+- Signos vitales
+- Notas diarias de turno
+- Administración de medicamentos
+
+**Médico**
+- Admisión del paciente
+- Evolución clínica
+- Solicitud de exámenes
+- Consentimiento informado
+- Reporte estadístico
+
+**Transversal**
+- Lista de pacientes internados como punto de entrada
+- Historia clínica y archivos adjuntos
+
+---
+
+## Arquitectura
 
 ```
 src/app/
-│
-├── core/                          # Servicios singleton, guards e interceptors
-│   ├── guards/
-│   │   └── auth.guard.ts          # Protege rutas privadas (redirige a /auth/error)
-│   ├── interceptors/
-│   │   └── auth.interceptor.ts    # Adjunta Bearer Token a cada petición HTTP
-│   ├── models/
-│   │   ├── user.model.ts          # Interface User del sistema
-│   │   ├── auth-response.ts       # Interface respuesta de autenticación
-│   │   ├── menu-item.model.ts     # Interface para el registro de menús
-│   │   └── usuario-crud.model.ts  # Interface para el CRUD de usuarios
-│   └── services/
-│       ├── auth.service.ts        # Lógica de login/logout con Angular Signals
-│       ├── menu.service.ts        # Gestión de menús corporativos
-│       ├── usuario-crud.service.ts# Gestión del CRUD de usuarios
-│       └── archivo.service.ts     # Servicio para visualización e interacción de archivos (PDFs)
-│
-├── shared/                        # Componentes, pipes y directivas genéricas
-│   └── index.ts
-│
-├── features/                      # Módulos de negocio principales
-│   └── admin/                     # Área privada (protegida por AuthGuard)
-│       ├── dashboard/
-│       │   └── dashboard.component.ts # Dashboard interactivo (indicadores, visualización de PDFs)
-│       ├── users/
-│       │   └── users.component.ts # CRUD completo funcional
-│       └── admin.routes.ts        # Rutas administrativas (/admin/*)
-│
-├── pages/                         # Páginas independientes de error o autenticación
-│   ├── auth/
-│   │   ├── access.ts              # Página de acceso denegado
-│   │   └── error.ts               # Página de error genérico
-│   └── notfound/
-│       └── notfound.ts            # Página 404
-│
-└── layout/                        # Componentes de shell (Sakai NG)
-    ├── component/
-    │   ├── app.layout.ts          # Layout principal (sidebar + topbar)
-    │   ├── app.menu.ts            # Menú lateral dinámico
-    │   └── app.topbar.ts          # Barra superior con información del usuario y logout
-    └── service/
-        └── layout.service.ts      # Configuración de apariencia y portal
+├── core/
+│   ├── guards/auth.guard.ts           # protege rutas y valida rol
+│   ├── interceptors/auth.interceptor.ts  # inyecta el JWT en cada request
+│   ├── models/                        # paciente, historia-clinica, evolucion,
+│   │                                  # enfermeria, user, auth-response
+│   └── services/                      # un servicio por dominio +
+│                                      # paciente-activo.service (paciente en foco)
+├── features/
+│   ├── doctor/                        # admisión, evolución, exámenes,
+│   │                                  # consentimiento, estadístico
+│   └── enfermeria/                    # signos vitales, notas diarias, medicamentos
+└── layout/                            # shell administrativo
 ```
+
+Separación en tres capas: `core` (lo transversal), `features` (dominio por rol), `layout` (chrome de la aplicación).
 
 ---
 
-## 🔐 Autenticación e Integración con el Portal
+## Decisiones técnicas
 
-El sistema está diseñado para integrarse perfectamente con el **Portal Institucional**. Recibe la sesión, configuración de layout de manera directa mediante parámetros en la URL y gestiona automáticamente la redirreción y almacenamiento mediante `AuthService`.
+**Rutas cerradas por rol, no solo por sesión.** El guard no pregunta únicamente si hay token: cada rama declara qué rol la puede abrir.
 
-**Simular entrada desde el Portal:**
-```
-http://localhost:4200/?token=MI_TOKEN_JWT&user={"id":1,"name":"Juan Perez","email":"juan@cossmil.mil.bo","role":"ADMIN"}&config={"preset":"Aura","primary":"noir","surface":"zinc","darkTheme":false}
-```
-
-### Lógica de Autenticación (`AuthService`)
-El `AuthService` utiliza **Angular Signals** y realiza los siguientes pasos al iniciar:
-1. Busca `token`, `user` y `config` en los parámetros de la URL.
-2. Si están presentes, los guarda localmente (`localStorage`), limpia la URL por seguridad y valida la sesión.
-3. Si no están en la URL, busca persistencia previa.
-4. Si no hay datos, cierra la sesión redirigiendo a su página correspondiente para acceso denegado.
-
----
-
-## 🏛️ Configuración de Identidad Corporativa
-
-Para adaptar la plantilla a un nuevo sistema, modifique el `LayoutService` (`src/app/layout/service/layout.service.ts`):
-
-```typescript
-// DEFAULT_CONFIG
+```ts
 {
-    systemName: 'Mi Nuevo Sistema',
-    portalUrl: 'https://portal.cossmil.mil.bo',
-    // ... otras configuraciones visuales (preset, primary, darkTheme)
+  path: 'doctor',
+  canActivate: [AuthGuard],
+  data: { roles: ['DOCTOR'] },
+  loadChildren: () => import('./features/doctor/doctor.routes')...
 }
 ```
 
-Esto actualizará automáticamente el nombre en la barra superior, adoptará los temas institucionales y ajustará el enlace responsivo de "Volver al Portal".
+Un usuario de enfermería no carga siquiera el bundle del área médica. Al entrar a `/app`, un componente `RoleHome` redirige a cada quien a su inicio según su rol.
+
+**Doble ruta por hoja clínica.** Cada formulario se registra dos veces — con `:pacienteId` y sin él:
+
+```ts
+...forms.flatMap((f) => [
+  { path: f.path,                 loadComponent: f.load },
+  { path: `${f.path}/:pacienteId`, loadComponent: f.load }
+])
+```
+
+Así la misma pantalla sirve para un deep-link desde la lista de pacientes y para abrirse con el paciente activo desde el menú lateral, sin duplicar componentes. El paciente en foco lo mantiene `paciente-activo.service`.
+
+**Zoneless change detection.** La aplicación corre con `provideZonelessChangeDetection()`, sin Zone.js — menos overhead y un ciclo de detección explícito.
+
+**Backend intercambiable.** `MockBackendInterceptor` sirve toda la data desde mocks cuando `environment.useMocks` está activo, así el frontend se desarrolla y demuestra sin depender del API. Cambiar a la API real es cambiar una bandera.
+
+> Este repositorio contiene únicamente el frontend, y corre sobre datos ficticios. No incluye información de pacientes reales.
 
 ---
 
-## ➕ Cómo Agregar un Nuevo Módulo
-
-### 1. Crear la carpeta del feature
+## Correr el proyecto
 
 ```bash
-mkdir src/app/features/mi-modulo
+npm install
+npm start          # http://localhost:4200
+npm run build      # build de producción
 ```
 
-### 2. Crear el componente principal
-
-```typescript
-// src/app/features/mi-modulo/mi-modulo.component.ts
-import { Component } from '@angular/core';
-
-@Component({ selector: 'app-mi-modulo', standalone: true, template: `<h1>Hola</h1>` })
-export class MiModuloComponent { }
-```
-
-### 3. Agregar en `admin.routes.ts`
-
-```typescript
-// src/app/features/admin/admin.routes.ts
-export const ADMIN_ROUTES: Routes = [
-    // ...
-    {
-        path: 'mi-modulo',
-        loadComponent: () => import('../mi-modulo/mi-modulo.component').then(m => m.MiModuloComponent)
-    }
-];
-```
-
-### 4. Agregar al menú
-
-Puede gestionarse a través del backend o desde la configuración del menú global del sistema conectándose con el CRUD de menús.
+La API se configura en `src/environments/environment.ts` (`apiUrl`). Con `useMocks: true` no hace falta backend.
 
 ---
 
-## 🛠️ Stack Tecnológico
+## Stack
 
-| Tecnología | Versión | Uso |
-|---|---|---|
-| **Angular** | 21 | Framework principal |
-| **PrimeNG** | 21.0.2 | Componentes UI reusables |
-| **Tailwind CSS** | v4 | Utilidades CSS / Estilos atómicos (`@tailwindcss/postcss`) |
-| **Sakai NG** | - | Template de layout base |
-| **Angular Signals** | built-in | Estado reactivo |
-| **Chart.js** | 4.4.2 | Gráficos e indicadores |
+`Angular 21` · `TypeScript` · `PrimeNG 21` · `Tailwind CSS 4` · `RxJS`
+Standalone components · lazy loading por ruta · interceptores HTTP · guards por rol
 
 ---
 
-## 📋 Buenas Prácticas Incluidas
-
-- ✅ **Lazy Loading** — Cada feature y carga de página es modular.
-- ✅ **Functional Guards** — `AuthGuard` implementado con la API moderna de la v21.
-- ✅ **Functional Interceptors** — `AuthInterceptor` utilizando `withInterceptors()`.
-- ✅ **Signals y SSR compatible** — Uso centralizado de propiedades reactivas y libre de dependencias RxJS rígidas en el `AuthService`.
-- ✅ **Standalone Components** — Sin NgModules, arquitectura escalable y moderna con Angular 21.
-- ✅ **Zoneless Readiness** — Arquitectura compatible con optimizaciones zoneless.
-
----
-
-## 🤝 Convenciones del Equipo
-
-- Los servicios e intefaces base van en `core/` (ej. `core/services/`, `core/models/`).
-- El diseño es orientado a composición: la vista principal de la interfaz administrativa se alberga bajo el concepto de `features/admin/`.
-- Cada router y carga es con `loadComponent`.
-- Usar imports relativos limpios o alias.
+**Autor** — [Mauricio Aparicio](https://github.com/astralmau69) · apariciomau3@gmail.com
